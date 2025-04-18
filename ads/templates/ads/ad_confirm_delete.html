@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Delete advertisement</h1>
+    <p>Are you sure you want to delete the advertisement "{{ object.title }}"?</p>
+    
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Yes, delete</button>
+        <a href="{{ object.get_absolute_url }}" class="btn btn-secondary">Cancel</a>
+    </form>
+{% endblock %}

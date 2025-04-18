@@ -1,0 +1,57 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Tabula24{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/variables.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <header class="main-header">
+        <div class="container header-flex">
+            <!-- Логотип и название -->
+            <div class="logo-block">
+                <a href="{% url 'home' %}" class="logo">
+                    <span class="logo-img">T</span>
+                    <span class="logo-title">Tabula24</span>
+                </a>
+            </div>
+            <!-- Главное меню -->
+            <nav class="main-menu">
+                <a href="#">Buy/Sell/Rent</a>
+                <a href="#">Services</a>
+                <a href="#">Jobs</a>
+                <a href="#">Non-commercial</a>
+            </nav>
+            <!-- Поиск, кнопка и юзер -->
+            <div class="header-actions">
+                <form class="search-form" action="{% url 'ads:ad_list' %}" method="get">
+                    <input type="text" name="q" placeholder="Search...">
+                    <button type="submit">🔍</button>
+                </form>
+                <a href="{% url 'ads:ad_create' %}" class="add-ad-btn">Add Ad</a>
+                <div class="user-block">
+                    {% if user.is_authenticated %}
+                        <span class="user-avatar">AB</span>
+                        <button class="user-menu-btn" title="User menu">&#9776;</button>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="login-link">Login</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Tabula24. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

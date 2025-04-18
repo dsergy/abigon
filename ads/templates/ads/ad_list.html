@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Advertisements</h1>
+    {% if user.is_authenticated %}
+        <a href="{% url 'ads:ad_create' %}" class="btn btn-primary">Add advertisement</a>
+    {% endif %}
+    
+    <div class="ads-grid">
+        {% for ad in ads %}
+            <div class="ad-card">
+                <h2><a href="{{ ad.get_absolute_url }}">{{ ad.title }}</a></h2>
+                <p>{{ ad.description|truncatewords:30 }}</p>
+                <p class="price">{{ ad.price }} $</p>
+                <p class="meta">
+                    Category: {{ ad.category.name }} |
+                    Views: {{ ad.views }} |
+                    Added: {{ ad.created_at|date:"d.m.Y" }}
+                </p>
+            </div>
+        {% empty %}
+            <p>No advertisements available.</p>
+        {% endfor %}
+    </div>
+
+    {% include "pagination.html" with page=page_obj %}
+{% endblock %}

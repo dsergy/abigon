@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Home — Armenian Classifieds{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <h1>Welcome to Armenian Classifieds!</h1>
+    <p>The best place for Armenian community ads in the USA.</p>
+    <a href="{% url 'ads:ad_list' %}" class="btn btn-primary">Browse All Ads</a>
+</section>
+
+<section class="vip-ads">
+    <h2>VIP Ads</h2>
+    {% if vip_ads %}
+        <div class="ads-grid">
+            {% for ad in vip_ads %}
+                <div class="ad-card vip">
+                    <h3><a href="{{ ad.get_absolute_url }}">{{ ad.title }}</a></h3>
+                    <p>{{ ad.description|truncatewords:20 }}</p>
+                    <p class="price">${{ ad.price }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No VIP ads yet.</p>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Profile</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <p class="form-control-static">{{ user.email }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <p class="form-control-static">{{ user.username }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Date Joined</label>
+                        <p class="form-control-static">{{ user.date_joined|date:"F j, Y" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

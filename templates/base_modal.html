@@ -1,0 +1,21 @@
+{% load static %}
+
+<div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title">{% block modal_title %}{% endblock %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block modal_content %}{% endblock %}
+    </div>
+</div>

@@ -1,0 +1,66 @@
+{% extends "base_modal.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load socialaccount %}
+
+{% block modal_title %}
+Login
+{% endblock %}
+
+{% block modal_content %}
+<div class="login-form">
+    <form id="login-form" hx-post="{% url 'accounts:login' %}" hx-target="#authModal .modal-content">
+        {% csrf_token %}
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            Please correct the errors below.
+        </div>
+        {% endif %}
+
+        <div class="mb-3">
+            <label for="username" class="form-label">Email</label>
+            <input type="email" class="form-control {% if form.username.errors %}is-invalid{% endif %}" id="username"
+                name="username" required>
+            {% if form.username.errors %}
+            <div class="invalid-feedback">
+                {{ form.username.errors|join:", " }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control {% if form.password.errors %}is-invalid{% endif %}" id="password"
+                name="password" required>
+            {% if form.password.errors %}
+            <div class="invalid-feedback">
+                {{ form.password.errors|join:", " }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="remember" name="remember">
+            <label class="form-check-label" for="remember">Remember me</label>
+        </div>
+
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary">Login</button>
+        </div>
+    </form>
+
+    <div class="social-login mt-4">
+        <div class="text-center mb-3">or continue with</div>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{% provider_login_url 'google' process='login' %}" class="btn btn-outline-dark">
+                <img src="{% static 'img/google-icon.svg' %}" alt="Google" width="24" height="24">
+                Google
+            </a>
+            <a href="{% provider_login_url 'facebook' process='login' %}" class="btn btn-outline-primary">
+                <img src="{% static 'img/facebook-icon.svg' %}" alt="Facebook" width="24" height="24">
+                Facebook
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

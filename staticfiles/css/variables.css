@@ -1,0 +1,17 @@
+:root {
+    --font-main: 'Segoe UI', Arial, sans-serif;
+    --color-bg: #f7f7f9;
+    --color-header: #fff;
+    --color-primary: #007bff;
+    --color-accent: #ff4081;
+    --color-other: #ffe066;
+    --color-text: #222;
+    --color-link: #007bff;
+    --color-link-hover: #0056b3;
+    --color-border: #e5e5e5;
+    --color-btn: #007bff;
+    --color-btn-hover: #0056b3;
+    --header-height: 64px;
+    --container-width: 1100px;
+    --border-radius: 10px;
+}

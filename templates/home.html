@@ -1,28 +1,46 @@
 {% extends "base.html" %}
 
-{% block title %}Home — Armenian Classifieds{% endblock %}
+{% block title %}Home - Classifieds{% endblock %}
 
 {% block content %}
-<section class="hero">
-    <h1>Welcome to Armenian Classifieds!</h1>
-    <p>The best place for Armenian community ads in the USA.</p>
-    <a href="{% url 'ads:ad_list' %}" class="btn btn-primary">Browse All Ads</a>
-</section>
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Welcome to Classifieds</h1>
+        {% if user.is_authenticated %}
+        <p>You are logged in as {{ user.email }}</p>
+        <a href="{% url 'ads:ad_create' %}" class="btn btn-primary">Create New Ad</a>
+        {% else %}
+        <p>Please <a href="#" class="show-register-modal">register</a> or <a href="{% url 'account_login' %}">login</a>
+            to create ads.</p>
+        {% endif %}
+    </div>
+</div>
 
-<section class="vip-ads">
-    <h2>VIP Ads</h2>
-    {% if vip_ads %}
-        <div class="ads-grid">
-            {% for ad in vip_ads %}
-                <div class="ad-card vip">
-                    <h3><a href="{{ ad.get_absolute_url }}">{{ ad.title }}</a></h3>
-                    <p>{{ ad.description|truncatewords:20 }}</p>
-                    <p class="price">${{ ad.price }}</p>
+<!-- Latest Ads Section -->
+<div class="row mt-5">
+    <div class="col-12">
+        <h2 class="mb-4">Latest Ads</h2>
+        <div class="row">
+            {% for ad in latest_ads %}
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    {% if ad.image %}
+                    <img src="{{ ad.image.url }}" class="card-img-top" alt="{{ ad.title }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ ad.title }}</h5>
+                        <p class="card-text">{{ ad.description|truncatewords:20 }}</p>
+                        <p class="card-text"><small class="text-muted">Price: ${{ ad.price }}</small></p>
+                        <a href="{{ ad.get_absolute_url }}" class="btn btn-primary">View Details</a>
+                    </div>
                 </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <p>No ads available yet.</p>
+            </div>
             {% endfor %}
         </div>
-    {% else %}
-        <p>No VIP ads yet.</p>
-    {% endif %}
-</section>
+    </div>
+</div>
 {% endblock %}

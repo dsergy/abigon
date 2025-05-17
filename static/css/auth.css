@@ -1,5 +1,7 @@
+/* Auth Modal Styles */
 .modal-content {
-    border-radius: 1rem;
+    border: none;
+    box-shadow: 0 2px 15px rgba(0, 0, 128, 0.1);
 }
 
 .modal-header {
@@ -7,39 +9,107 @@
     padding: 2rem 2rem 1rem;
 }
 
+.modal-header .modal-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
 .modal-body {
     padding: 1rem 2rem 2rem;
 }
 
-.social-auth {
-    margin-top: 2rem;
-    padding-top: 2rem;
-    border-top: 1px solid #dee2e6;
+/* Form Styles */
+.login-form,
+.registration-form,
+.verification-form,
+.set-password-form {
+    max-width: 100%;
+    margin: 0 auto;
 }
 
-.social-auth .btn {
-    width: 48px;
-    height: 48px;
-    padding: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    font-size: 1.25rem;
+.form-label {
+    font-weight: 500;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
 }
 
 .form-control {
     padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
+    border: 1px solid rgba(0, 0, 128, 0.1);
+    transition: all 0.3s ease;
 }
 
-.btn-primary {
+.form-control:focus {
+    border-color: var(--button-bg);
+    box-shadow: 0 0 0 0.25rem rgba(0, 0, 128, 0.1);
+}
+
+.form-text {
+    color: rgba(0, 0, 128, 0.6);
+    font-size: 0.875rem;
+}
+
+/* Social Login Section */
+.social-login {
+    border-top: 1px solid rgba(0, 0, 128, 0.1);
+    padding-top: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.social-login .text-center {
+    color: rgba(0, 0, 128, 0.6);
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+/* Social Buttons */
+.social-login .btn {
     padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
+.social-login img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+/* Alert Messages */
+.alert {
+    border-radius: var(--button-radius);
+    border: none;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.alert-danger {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+/* Verification Code Input */
 #code {
     font-size: 1.5rem;
     letter-spacing: 0.5rem;
     text-align: center;
+    font-family: 'Lato', monospace;
+}
+
+/* Links in forms */
+.login-form a,
+.registration-form a {
+    color: var(--button-bg);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.login-form a:hover,
+.registration-form a:hover {
+    color: var(--text-color);
 }

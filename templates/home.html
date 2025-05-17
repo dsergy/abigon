@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Home - Classifieds{% endblock %}
+{% block title %}Home - Abigon{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h1 class="mb-4">Welcome to Classifieds</h1>
+        <h1 class="mb-4">Welcome to Abigon</h1>
         {% if user.is_authenticated %}
         <p>You are logged in as {{ user.email }}</p>
         <a href="{% url 'ads:ad_create' %}" class="btn btn-primary">Create New Ad</a>

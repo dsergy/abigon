@@ -1,0 +1,59 @@
+Defaulting to user installation because normal site-packages is not writeable
+Collecting wagtail
+  Downloading wagtail-7.0-py3-none-any.whl (9.1 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 9.1/9.1 MB 5.8 MB/s eta 0:00:00
+Requirement already satisfied: requests<3.0,>=2.11.1 in /usr/lib/python3/dist-packages (from wagtail) (2.25.1)
+Collecting django-permissionedforms<1.0,>=0.1
+  Downloading django_permissionedforms-0.1-py2.py3-none-any.whl (5.7 kB)
+Requirement already satisfied: Django>=4.2 in /home/art/.local/lib/python3.10/site-packages (from wagtail) (5.2.1)
+Collecting django-filter>=23.3
+  Downloading django_filter-25.1-py3-none-any.whl (94 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 94.1/94.1 KB 4.8 MB/s eta 0:00:00
+Collecting draftjs_exporter<6.0,>=2.1.5
+  Downloading draftjs_exporter-5.1.0-py3-none-any.whl (26 kB)
+Collecting openpyxl<4.0,>=3.0.10
+  Downloading openpyxl-3.1.5-py2.py3-none-any.whl (250 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 250.9/250.9 KB 15.2 MB/s eta 0:00:00
+Collecting laces<0.2,>=0.1
+  Downloading laces-0.1.2-py3-none-any.whl (22 kB)
+Collecting django-modelcluster<7.0,>=6.2.1
+  Downloading django_modelcluster-6.4-py2.py3-none-any.whl (29 kB)
+Collecting django-taggit<7,>=5.0
+  Downloading django_taggit-6.1.0-py3-none-any.whl (75 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 75.7/75.7 KB 2.7 MB/s eta 0:00:00
+Collecting django-treebeard<5.0,>=4.5.1
+  Downloading django_treebeard-4.7.1-py3-none-any.whl (93 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 93.2/93.2 KB 16.1 MB/s eta 0:00:00
+Requirement already satisfied: Pillow<12.0.0,>=9.1.0 in /home/art/.local/lib/python3.10/site-packages (from wagtail) (11.2.1)
+Collecting beautifulsoup4<5,>=4.8
+  Downloading beautifulsoup4-4.13.4-py3-none-any.whl (187 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 187.3/187.3 KB 6.9 MB/s eta 0:00:00
+Collecting anyascii>=0.1.5
+  Downloading anyascii-0.3.2-py3-none-any.whl (289 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 289.9/289.9 KB 5.2 MB/s eta 0:00:00
+Collecting Willow[heif]<2,>=1.10.0
+  Downloading willow-1.10.0-py3-none-any.whl (119 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 119.3/119.3 KB 4.0 MB/s eta 0:00:00
+Collecting django-tasks<0.8,>=0.7
+  Downloading django_tasks-0.7.0-py3-none-any.whl (39 kB)
+Collecting telepath<1,>=0.3.1
+  Downloading telepath-0.3.1-py38-none-any.whl (10 kB)
+Requirement already satisfied: djangorestframework<4.0,>=3.15.1 in /home/art/.local/lib/python3.10/site-packages (from wagtail) (3.16.0)
+Requirement already satisfied: typing-extensions>=4.0.0 in /home/art/.local/lib/python3.10/site-packages (from beautifulsoup4<5,>=4.8->wagtail) (4.13.2)
+Collecting soupsieve>1.2
+  Downloading soupsieve-2.7-py3-none-any.whl (36 kB)
+Requirement already satisfied: asgiref>=3.8.1 in /home/art/.local/lib/python3.10/site-packages (from Django>=4.2->wagtail) (3.8.1)
+Requirement already satisfied: sqlparse>=0.3.1 in /home/art/.local/lib/python3.10/site-packages (from Django>=4.2->wagtail) (0.5.3)
+Collecting django-stubs-ext
+  Downloading django_stubs_ext-5.2.0-py3-none-any.whl (9.1 kB)
+Collecting et-xmlfile
+  Downloading et_xmlfile-2.0.0-py3-none-any.whl (18 kB)
+Collecting defusedxml<1.0,>=0.7
+  Downloading defusedxml-0.7.1-py2.py3-none-any.whl (25 kB)
+Collecting filetype!=1.1.0,>=1.0.10
+  Downloading filetype-1.2.0-py2.py3-none-any.whl (19 kB)
+Collecting pillow-heif<0.22.0,>=0.10.0
+  Downloading pillow_heif-0.21.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (7.8 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.8/7.8 MB 5.9 MB/s eta 0:00:00
+Installing collected packages: filetype, draftjs_exporter, telepath, soupsieve, pillow-heif, et-xmlfile, defusedxml, anyascii, Willow, openpyxl, beautifulsoup4, laces, django-treebeard, django-taggit, django-stubs-ext, django-permissionedforms, django-modelcluster, django-filter, django-tasks, wagtail
+Successfully installed Willow-1.10.0 anyascii-0.3.2 beautifulsoup4-4.13.4 defusedxml-0.7.1 django-filter-25.1 django-modelcluster-6.4 django-permissionedforms-0.1 django-stubs-ext-5.2.0 django-taggit-6.1.0 django-tasks-0.7.0 django-treebeard-4.7.1 draftjs_exporter-5.1.0 et-xmlfile-2.0.0 filetype-1.2.0 laces-0.1.2 openpyxl-3.1.5 pillow-heif-0.21.0 soupsieve-2.7 telepath-0.3.1 wagtail-7.0

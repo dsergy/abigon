@@ -5,70 +5,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Classifieds{% endblock %}</title>
+    <title>{% block title %}Abigon{% endblock %}</title>
+
+    <!-- Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Lato:wght@300;400;700&display=swap"
+        rel="stylesheet">
 
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link href="{% static 'css/auth.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Default site styles -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <!-- Component specific styles -->
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
 
-<body hx-boost="false">
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">Classifieds</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <span class="nav-link">Welcome, {{ user.email }}</span>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:profile' %}">Profile</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:logout' %}">Logout</a>
-                    </li>
-                    {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" hx-get="{% url 'accounts:login' %}"
-                            hx-target="#authModal .modal-content" data-bs-toggle="modal"
-                            data-bs-target="#authModal">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" hx-get="{% url 'accounts:register_modal' %}"
-                            hx-target="#authModal .modal-content" data-bs-toggle="modal"
-                            data-bs-target="#authModal">Register</a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </nav>
+<body hx-boost="false" class="bg-light">
+    {% include 'includes/header.html' %}
 
     <!-- Main Content -->
-    <div class="container mt-4">
-        {% block content %}{% endblock %}
+    <main class="main-content">
+        <div class="container mt-4">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    {% include 'includes/footer.html' %}
+
+    <!-- Modal containers -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
     </div>
 
-    <!-- Auth Modal -->
-    <div class="modal fade" id="authModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <!-- Modal content will be loaded here -->
+                <!-- Content will be loaded dynamically -->
             </div>
         </div>
     </div>
 
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@1.9.0"></script>
     <!-- Custom JS -->
@@ -76,19 +63,24 @@
         // Handle form submission success
         document.body.addEventListener('htmx:afterOnLoad', function (evt) {
             if (evt.detail.successful && evt.detail.xhr.response.includes('window.location.reload')) {
-                var modal = bootstrap.Modal.getInstance(document.getElementById('authModal'));
-                if (modal) {
-                    modal.hide();
-                }
+                var loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+                var registerModal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
+                if (loginModal) loginModal.hide();
+                if (registerModal) registerModal.hide();
                 window.location.reload();
             }
         });
 
         // Clean up modal content when closed
-        document.getElementById('authModal').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('loginModal').addEventListener('hidden.bs.modal', function () {
+            this.querySelector('.modal-content').innerHTML = '';
+        });
+        document.getElementById('registerModal').addEventListener('hidden.bs.modal', function () {
             this.querySelector('.modal-content').innerHTML = '';
         });
     </script>
+    <!-- Auth JS -->
+    <script src="{% static 'js/auth.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 

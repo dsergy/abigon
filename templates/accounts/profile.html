@@ -1,29 +1,124 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container-fluid mt-4">
     <div class="row">
-        <div class="col-md-8 offset-md-2">
+        <!-- Left Column - Navigation -->
+        <div class="col-md-3">
             <div class="card">
-                <div class="card-header">
-                    <h4>Profile</h4>
-                </div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <p class="form-control-static">{{ user.email }}</p>
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="flex-shrink-0">
+                            <div class="octagon-user">
+                                {{ user.email|slice:":1"|default:"A" }}
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5 class="mb-0">{{ user.email }}</h5>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Username</label>
-                        <p class="form-control-static">{{ user.username }}</p>
+                    <div class="list-group">
+                        <a href="{% url 'accounts:profile' %}"
+                            class="list-group-item list-group-item-action {% if active_section == 'profile' %}active{% endif %}">
+                            <i class="fas fa-user me-2"></i> Profile
+                        </a>
+                        <a href="{% url 'accounts:profile_section' 'ads' %}"
+                            class="list-group-item list-group-item-action {% if active_section == 'ads' %}active{% endif %}">
+                            <i class="fas fa-ad me-2"></i> Ads
+                        </a>
+                        <a href="{% url 'accounts:profile_section' 'messages' %}"
+                            class="list-group-item list-group-item-action {% if active_section == 'messages' %}active{% endif %}">
+                            <i class="fas fa-envelope me-2"></i> Messages
+                        </a>
+                        <a href="{% url 'accounts:profile_section' 'reviews' %}"
+                            class="list-group-item list-group-item-action {% if active_section == 'reviews' %}active{% endif %}">
+                            <i class="fas fa-star me-2"></i> Reviews
+                        </a>
+                        <a href="{% url 'accounts:profile_section' 'wallet' %}"
+                            class="list-group-item list-group-item-action {% if active_section == 'wallet' %}active{% endif %}">
+                            <i class="fas fa-wallet me-2"></i> Wallet
+                        </a>
+                        <a href="{% url 'accounts:profile_section' 'settings' %}"
+                            class="list-group-item list-group-item-action {% if active_section == 'settings' %}active{% endif %}">
+                            <i class="fas fa-cog me-2"></i> Settings
+                        </a>
+                        <a href="{% url 'accounts:logout' %}"
+                            class="list-group-item list-group-item-action text-danger">
+                            <i class="fas fa-sign-out-alt me-2"></i> Logout
+                        </a>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Date Joined</label>
-                        <p class="form-control-static">{{ user.date_joined|date:"F j, Y" }}</p>
-                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Content -->
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-body">
+                    {% block profile_content %}
+                    {% if active_section == 'ads' %}
+                    <h2>Ads</h2>
+                    <p>Your advertisements will appear here.</p>
+                    {% elif active_section == 'messages' %}
+                    <h2>Messages</h2>
+                    <p>Your messages will appear here.</p>
+                    {% elif active_section == 'reviews' %}
+                    <h2>Reviews</h2>
+                    <p>Your reviews will appear here.</p>
+                    {% elif active_section == 'wallet' %}
+                    <h2>Wallet</h2>
+                    <p>Your wallet information will appear here.</p>
+                    {% elif active_section == 'settings' %}
+                    <h2>Settings</h2>
+                    <p>Your account settings will appear here.</p>
+                    {% else %}
+                    <h2>Welcome to your profile</h2>
+                    <p>Select a section from the menu to get started.</p>
+                    {% endif %}
+                    {% endblock %}
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        border-radius: var(--button-radius);
+        border: none;
+        box-shadow: 0 2px 4px rgba(12, 26, 50, 0.1);
+    }
+
+    .list-group-item {
+        border: none;
+        padding: 0.75rem 1rem;
+        color: var(--text-color);
+        background: transparent;
+        transition: all var(--transition-speed) ease;
+    }
+
+    .list-group-item:hover {
+        background: rgba(15, 29, 53, 0.05);
+        color: var(--button-bg);
+    }
+
+    .list-group-item.active {
+        background-color: var(--button-bg);
+        color: var(--button-text);
+    }
+
+    .list-group-item.text-danger:hover {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+
+    .octagon-user {
+        width: 48px;
+        height: 48px;
+        font-size: 1.25rem;
+    }
+</style>
 {% endblock %}

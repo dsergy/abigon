@@ -13,6 +13,7 @@ from django.views.decorators.http import require_POST
 from django.core.files.storage import default_storage
 import json
 import re
+import string
 
 User = get_user_model()
 
@@ -65,43 +66,82 @@ def verify_token(token):
 
 def register_modal(request):
     """Display registration modal."""
-    return render(request, 'accounts/register_modal.html')
+    return render(request, 'accounts/modals/register_modal.html')
 
+@require_POST
 def register_email(request):
-    """Handle email registration step."""
-    if request.method == 'POST':
+    """Handle email registration."""
+    try:
+        print("Starting register_email view")
         email = request.POST.get('email')
-        
-        if not email:
-            return render(request, 'accounts/register_modal.html', {
-                'error': 'Email is required'
-            })
-            
+        name = request.POST.get('name')
+        print(f"Received data - email: {email}, name: {name}")
+
+        if not all([email, name]):
+            print("Missing required fields")
+            return JsonResponse({
+                'status': 'error',
+                'message': 'All fields are required'
+            }, status=400)
+
         if User.objects.filter(email=email).exists():
-            return render(request, 'accounts/register_modal.html', {
-                'error': 'This email is already registered'
-            })
+            print("Email already exists")
+            return JsonResponse({
+                'status': 'error',
+                'message': 'This email is already registered'
+            }, status=400)
+
+        # Generate verification code
+        verification_code = generate_verification_code()
+        print(f"Generated verification code: {verification_code}")
         
-        code = generate_verification_code()
-        token = generate_token(email, code)
+        # Generate token
+        token = generate_token(email, verification_code)
+        print(f"Generated token: {token}")
+        
+        # Store in session
         request.session['registration_token'] = token
+        request.session['registration_name'] = name
+        print("Token and name stored in session")
         
+        # Debug output
+        print(f"Email settings:")
+        print(f"EMAIL_HOST_USER: {settings.EMAIL_HOST_USER}")
+        print(f"DEFAULT_FROM_EMAIL: {settings.DEFAULT_FROM_EMAIL}")
+        print(f"EMAIL_HOST: {settings.EMAIL_HOST}")
+        print(f"EMAIL_PORT: {settings.EMAIL_PORT}")
+        
+        # Send verification email
         try:
+            print("Attempting to send email...")
             send_mail(
-                'Verification Code',
-                f'Your verification code is: {code}',
+                'Email Verification',
+                f'Your verification code: {verification_code}',
                 settings.DEFAULT_FROM_EMAIL,
                 [email],
                 fail_silently=False,
             )
+            print("Email sent successfully")
         except Exception as e:
-            return render(request, 'accounts/register_modal.html', {
-                'error': f'Failed to send verification code: {str(e)}'
-            })
+            print(f"Email error: {str(e)}")
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Failed to send verification email. Please try again.'
+            }, status=500)
         
-        return render(request, 'accounts/verify_code.html', {'email': email})
-    
-    return HttpResponse('Invalid request', status=400)
+        context = {
+            'email': email
+        }
+        print("Rendering verify_code template")
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return render(request, 'accounts/modals/verify_code.html', context)
+        return render(request, 'accounts/modals/verify_code.html', context)
+    except Exception as e:
+        print(f"General error: {str(e)}")
+        return JsonResponse({
+            'status': 'error',
+            'message': 'An error occurred. Please try again.'
+        }, status=500)
 
 def verify_code(request):
     """Handle verification code step."""
@@ -137,6 +177,7 @@ def complete_registration(request):
         password1 = request.POST.get('password1')
         password2 = request.POST.get('password2')
         token = request.POST.get('token')
+        name = request.session.get('registration_name')
         
         if password1 != password2:
             context = {
@@ -163,7 +204,8 @@ def complete_registration(request):
             user = User.objects.create_user(
                 username=email,
                 email=email,
-                password=password1
+                password=password1,
+                name=name
             )
             user.backend = 'django.contrib.auth.backends.ModelBackend'
             login(request, user)

@@ -1,28 +1,45 @@
-# Виртуальные окружения  
-venv/  
-env/  
-  
-# Python cache  
-__pycache__/  
-*.pyc  
-  
-# Логи  
-*.log  
-  
-# Файлы настроек и секретов  
-.env  
-local_settings.py  
-  
-# Файлы редакторов  
-*.swp  
-*.swo  
-  
-# Базы данных (если локально)  
-*.sqlite3  
-  
-# Docker  
-*.pid  
-  
-# Системные файлы  
-.DS_Store  
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media
+staticfiles/
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
 Thumbs.db

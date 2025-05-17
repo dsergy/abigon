@@ -10,19 +10,20 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center mb-4">
                         <div class="flex-shrink-0">
+                            {% if user.avatar %}
+                            <img src="{{ user.avatar.url }}" alt="User avatar" class="avatar-image">
+                            {% else %}
                             <div class="octagon-user">
-                                {{ user.email|slice:":1"|default:"A" }}
+                                {{ user.name|slice:":1"|default:user.email|slice:":1"|upper }}
                             </div>
+                            {% endif %}
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <h5 class="mb-0">{{ user.email }}</h5>
+                            <h5 class="mb-0">{{ user.name|default:user.email|truncatechars:20 }}</h5>
+                            <small class="text-muted">{{ user.email }}</small>
                         </div>
                     </div>
                     <div class="list-group">
-                        <a href="{% url 'accounts:profile' %}"
-                            class="list-group-item list-group-item-action {% if active_section == 'profile' %}active{% endif %}">
-                            <i class="fas fa-user me-2"></i> Profile
-                        </a>
                         <a href="{% url 'accounts:profile_section' 'ads' %}"
                             class="list-group-item list-group-item-action {% if active_section == 'ads' %}active{% endif %}">
                             <i class="fas fa-ad me-2"></i> Ads
@@ -30,10 +31,6 @@
                         <a href="{% url 'accounts:profile_section' 'messages' %}"
                             class="list-group-item list-group-item-action {% if active_section == 'messages' %}active{% endif %}">
                             <i class="fas fa-envelope me-2"></i> Messages
-                        </a>
-                        <a href="{% url 'accounts:profile_section' 'reviews' %}"
-                            class="list-group-item list-group-item-action {% if active_section == 'reviews' %}active{% endif %}">
-                            <i class="fas fa-star me-2"></i> Reviews
                         </a>
                         <a href="{% url 'accounts:profile_section' 'wallet' %}"
                             class="list-group-item list-group-item-action {% if active_section == 'wallet' %}active{% endif %}">
@@ -63,9 +60,6 @@
                     {% elif active_section == 'messages' %}
                     <h2>Messages</h2>
                     <p>Your messages will appear here.</p>
-                    {% elif active_section == 'reviews' %}
-                    <h2>Reviews</h2>
-                    <p>Your reviews will appear here.</p>
                     {% elif active_section == 'wallet' %}
                     <h2>Wallet</h2>
                     <p>Your wallet information will appear here.</p>
@@ -115,10 +109,25 @@
         color: #dc3545;
     }
 
+    .avatar-image {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--primary-color);
+    }
+
     .octagon-user {
         width: 48px;
         height: 48px;
+        background: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         font-size: 1.25rem;
+        font-weight: 500;
+        border-radius: 50%;
     }
 </style>
 {% endblock %}

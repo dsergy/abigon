@@ -410,3 +410,43 @@ def update_zipcode(request):
         })
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+@require_POST
+@login_required
+def delete_account(request):
+    """Handle account deletion."""
+    try:
+        data = json.loads(request.body)
+        email = data.get('email')
+
+        if email != request.user.email:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Email does not match your account email'
+            }, status=400)
+
+        # Send confirmation email
+        send_mail(
+            'Account Deletion Confirmation',
+            f'Your account with email {email} has been successfully deleted.',
+            settings.DEFAULT_FROM_EMAIL,
+            [email],
+            fail_silently=False,
+        )
+
+        # Delete user
+        user = request.user
+        user.delete()
+
+        # Logout user
+        logout(request)
+
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Account successfully deleted'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)

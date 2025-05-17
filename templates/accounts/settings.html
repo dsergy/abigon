@@ -7,9 +7,9 @@
     <!-- Tabs Navigation -->
     <ul class="nav nav-tabs mb-4" id="settingsTabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link {% if subsection == 'profile' %}active{% endif %}" id="profile-tab"
-                data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab">
-                <i class="fas fa-user me-2"></i>Profile
+            <button class="nav-link {% if subsection == 'account' %}active{% endif %}" id="account-tab"
+                data-bs-toggle="tab" data-bs-target="#account" type="button" role="tab">
+                <i class="fas fa-user me-2"></i>Account
             </button>
         </li>
         <li class="nav-item" role="presentation">
@@ -36,21 +36,15 @@
                 <i class="fas fa-ban me-2"></i>BlackList
             </button>
         </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link {% if subsection == 'account' %}active{% endif %}" id="account-tab"
-                data-bs-toggle="tab" data-bs-target="#account" type="button" role="tab">
-                <i class="fas fa-cog me-2"></i>Account
-            </button>
-        </li>
     </ul>
 
     <!-- Tab Content -->
     <div class="tab-content" id="settingsTabContent">
-        <!-- Profile Tab -->
-        <div class="tab-pane fade {% if subsection == 'profile' %}show active{% endif %}" id="profile" role="tabpanel">
+        <!-- Account Tab -->
+        <div class="tab-pane fade {% if subsection == 'account' %}show active{% endif %}" id="account" role="tabpanel">
             <section class="mb-5">
-                <h2 class="section-title mb-4">Profile</h2>
-                <div class="settings-form">
+                <h2 class="section-title mb-4">Account Settings</h2>
+                <div class="account-settings">
                     <!-- Name Field -->
                     <div class="setting-item mb-4">
                         <div class="d-flex justify-content-between align-items-center">
@@ -78,13 +72,7 @@
                             <div>
                                 <label class="form-label">Avatar</label>
                                 <div class="setting-value d-flex align-items-center">
-                                    {% if user.avatar %}
-                                    <img src="{{ user.avatar.url }}" alt="User avatar" class="avatar-image me-3">
-                                    {% else %}
-                                    <div class="octagon-user me-3">
-                                        {{ user.name|slice:":1"|default:user.email|slice:":1"|upper }}
-                                    </div>
-                                    {% endif %}
+                                    {% include "includes/user_avatar.html" %}
                                 </div>
                                 <div class="edit-form d-none">
                                     <input type="file" class="form-control" id="avatarInput" accept="image/*">
@@ -148,6 +136,42 @@
                             <button class="btn btn-link edit-btn" data-edit="gender">
                                 <i class="fas fa-pen"></i>
                             </button>
+                        </div>
+                    </div>
+
+                    <!-- Account Type -->
+                    <div class="setting-item mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <label class="form-label">Account Type</label>
+                                <div class="setting-value">Individual</div>
+                                <p class="text-muted mb-0">Basic account features</p>
+                            </div>
+                            <button class="btn btn-primary">Upgrade</button>
+                        </div>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="setting-item mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <label class="form-label">Password</label>
+                                <div class="setting-value">••••••••</div>
+                            </div>
+                            <button class="btn btn-link edit-btn">
+                                <i class="fas fa-pen"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Delete Account -->
+                    <div class="setting-item mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <label class="form-label">Delete Account</label>
+                                <p class="text-muted mb-0">This action cannot be undone</p>
+                            </div>
+                            <button class="btn btn-danger">Delete Account</button>
                         </div>
                     </div>
                 </div>
@@ -293,50 +317,6 @@
                 </div>
             </section>
         </div>
-
-        <!-- Account Tab -->
-        <div class="tab-pane fade {% if subsection == 'account' %}show active{% endif %}" id="account" role="tabpanel">
-            <section class="mb-5">
-                <h2 class="section-title mb-4">Account Settings</h2>
-                <div class="account-settings">
-                    <!-- Account Type -->
-                    <div class="setting-item mb-4">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <label class="form-label">Account Type</label>
-                                <div class="setting-value">Individual</div>
-                                <p class="text-muted mb-0">Basic account features</p>
-                            </div>
-                            <button class="btn btn-primary">Upgrade</button>
-                        </div>
-                    </div>
-
-                    <!-- Password -->
-                    <div class="setting-item mb-4">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <label class="form-label">Password</label>
-                                <div class="setting-value">••••••••</div>
-                            </div>
-                            <button class="btn btn-link edit-btn">
-                                <i class="fas fa-pen"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Delete Account -->
-                    <div class="setting-item mb-4">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <label class="form-label">Delete Account</label>
-                                <p class="text-muted mb-0">This action cannot be undone</p>
-                            </div>
-                            <button class="btn btn-danger">Delete Account</button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </div>
     </div>
 </div>
 
@@ -476,6 +456,38 @@
 
 <!-- Add IMask.js library -->
 <script src="https://unpkg.com/imask"></script>
+
+<!-- Delete Account Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteAccountModalLabel">Delete Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Warning: This action cannot be undone. All your data will be permanently deleted.
+                </div>
+                <form id="deleteAccountForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="confirmEmail" class="form-label">Please enter your email to confirm account
+                            deletion</label>
+                        <input type="email" class="form-control" id="confirmEmail" required
+                            placeholder="Enter your email address">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteAccount">Delete Account</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -752,6 +764,46 @@
                 }
             } catch (error) {
                 alert('Error updating ZIP code');
+            }
+        });
+
+        // Delete Account functionality
+        const deleteAccountBtn = document.querySelector('.btn-danger');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteAccount');
+        const deleteAccountModal = new bootstrap.Modal(document.getElementById('deleteAccountModal'));
+        const confirmEmailInput = document.getElementById('confirmEmail');
+
+        deleteAccountBtn.addEventListener('click', function () {
+            confirmEmailInput.value = ''; // Очищаем поле email
+            deleteAccountModal.show();
+        });
+
+        confirmDeleteBtn.addEventListener('click', async function () {
+            const email = confirmEmailInput.value.trim();
+
+            if (email !== '{{ user.email }}') {
+                alert('Email does not match your account email');
+                return;
+            }
+
+            try {
+                const response = await fetch('/accounts/profile/settings/delete-account/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+                if (data.status === 'success') {
+                    window.location.href = '/'; // Redirect to home page after successful deletion
+                } else {
+                    alert(data.message || 'Failed to delete account');
+                }
+            } catch (error) {
+                alert('Error deleting account');
             }
         });
     });

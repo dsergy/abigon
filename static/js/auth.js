@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Load register form when register modal is shown
     registerModal.addEventListener('show.bs.modal', function (event) {
-        fetch('/accounts/register/modal/', {
+        fetch('/accounts/register/', {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
             }

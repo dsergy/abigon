@@ -1,0 +1,7 @@
+{% if user.avatar %}
+<img src="{{ user.avatar.url }}" alt="User avatar" class="avatar-image">
+{% else %}
+<div class="octagon-user">
+    {{ user.name|slice:":1"|default:user.email|slice:":1"|upper }}
+</div>
+{% endif %}

@@ -24,4 +24,5 @@ urlpatterns = [
     path('profile/settings/update/phone/', views.update_phone, name='update_phone'),
     path('profile/settings/update/phone/verify/', views.verify_phone, name='verify_phone'),
     path('profile/settings/update/zipcode/', views.update_zipcode, name='update_zipcode'),
+    path('profile/settings/delete-account/', views.delete_account, name='delete_account'),
 ] 

@@ -56,12 +56,17 @@
                             <button class="btn btn-link dropdown-toggle user-menu-button p-0" type="button"
                                 data-bs-toggle="dropdown" aria-expanded="false">
                                 <div class="d-flex align-items-center">
-                                    <div class="octagon-user me-2">
-                                        {{ user.email|slice:":1" }}
+                                    {% if user.avatar %}
+                                    <img src="{{ user.avatar.url }}" alt="User avatar" class="avatar-image">
+                                    {% else %}
+                                    <div class="octagon-user">
+                                        {{ user.name|slice:":1"|default:user.email|slice:":1"|upper }}
                                     </div>
-                                    <span class="d-none d-md-inline">
-                                        {{ user.email }}
+                                    {% endif %}
+                                    <span class="d-none d-md-inline ms-2">
+                                        {{ user.name|default:user.email|truncatechars:20 }}
                                     </span>
+                                    <i class="fas fa-bars ms-2"></i>
                                 </div>
                             </button>
                             <ul class="dropdown-menu shadow-sm mt-2">
@@ -84,14 +89,17 @@
                         </div>
                     </div>
                     {% else %}
-                    <a href="#" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#loginModal">
-                        <div class="d-flex align-items-center">
-                            <div class="octagon-user me-2">
-                                <i class="fas fa-user"></i>
+                    <div class="d-flex align-items-center">
+                        <a href="#" class="btn btn-link p-0 me-3" data-bs-toggle="modal" data-bs-target="#loginModal">
+                            <div class="d-flex align-items-center">
+                                <div class="octagon-user me-2">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <span class="d-none d-md-inline">Login</span>
                             </div>
-                            <span class="d-none d-md-inline">Login</span>
-                        </div>
-                    </a>
+                        </a>
+                        </a>
+                    </div>
                     {% endif %}
                 </div>
 
@@ -163,16 +171,23 @@
         justify-content: center;
         font-size: 16px;
         font-weight: 500;
-        clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+        border-radius: 50%;
     }
 
     .user-menu-button {
         color: var(--text-color) !important;
         text-decoration: none !important;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     .user-menu-button:hover {
         color: var(--primary-color) !important;
+    }
+
+    .user-menu-button .fa-bars {
+        font-size: 1.2rem;
     }
 
     .social-icons .btn {

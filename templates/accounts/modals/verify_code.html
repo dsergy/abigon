@@ -2,26 +2,25 @@
 
 <div class="modal-content">
     <div class="modal-header">
-        <h5 class="modal-title">Register</h5>
+        <h5 class="modal-title">Verify Email</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
     <div class="modal-body">
-        <form method="post" action="{% url 'accounts:register_email' %}" class="register-form">
+        <form method="post" action="{% url 'accounts:verify_code' %}" class="verify-form">
             {% csrf_token %}
+            <input type="hidden" name="email" value="{{ email }}">
             {% if error %}
             <div class="alert alert-danger">
                 {{ error }}
             </div>
             {% endif %}
             <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" name="email" class="form-control" id="email" required>
+                <p class="text-muted">We've sent a verification code to {{ email }}</p>
+                <label for="code" class="form-label">Verification Code</label>
+                <input type="text" name="code" class="form-control" id="code" required>
             </div>
-            <button type="submit" class="btn btn-primary w-100">Continue</button>
+            <button type="submit" class="btn btn-primary w-100">Verify</button>
         </form>
-    </div>
-    <div class="modal-footer justify-content-center">
-        <p class="mb-0">Already have an account? <a href="#" class="login-link">Login</a></p>
     </div>
 </div>
 
@@ -40,11 +39,6 @@
         padding: 1.5rem;
     }
 
-    .modal-footer {
-        border-top: 1px solid rgba(12, 26, 50, 0.1);
-        padding: 1.5rem;
-    }
-
     .form-control {
         border-radius: var(--button-radius);
         border: 1px solid rgba(12, 26, 50, 0.1);
@@ -54,14 +48,5 @@
     .form-control:focus {
         border-color: var(--button-bg);
         box-shadow: 0 0 0 0.2rem rgba(15, 29, 53, 0.25);
-    }
-
-    .login-link {
-        color: var(--button-bg);
-        text-decoration: none;
-    }
-
-    .login-link:hover {
-        text-decoration: underline;
     }
 </style>

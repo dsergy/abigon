@@ -32,7 +32,16 @@ DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '192.168.1.107', 'abigon.net']
 
 # CSRF settings
-CSRF_TRUSTED_ORIGINS = ['http://192.168.1.107', 'http://localhost', 'http://127.0.0.1', 'http://abigon.net']
+CSRF_TRUSTED_ORIGINS = [
+    'http://192.168.1.107',
+    'http://localhost',
+    'http://127.0.0.1',
+    'http://abigon.net',
+    'https://192.168.1.107',
+    'https://localhost',
+    'https://127.0.0.1',
+    'https://abigon.net'
+]
 
 # Application definition
 INSTALLED_APPS = [
@@ -244,3 +253,9 @@ ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = True
 ACCOUNT_UNIQUE_EMAIL = True
+
+# Security settings
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True

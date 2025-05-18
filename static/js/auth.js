@@ -1,70 +1,89 @@
+// Helper for safe fetch requests with CSRF
+const csrfFetch = (url, options = {}) => {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+    return fetch(url, {
+        ...options,
+        credentials: 'same-origin',
+        headers: {
+            ...options.headers,
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    });
+};
+
+// Helper for safe Bootstrap modal instance
+const getOrCreateModal = (element) => {
+    if (!element) return null;
+    return bootstrap.Modal.getOrCreateInstance(element);
+};
+
+// Helper for focus and inert management
+const setModalInert = (modal, inert = true) => {
+    if (!modal) return;
+    const content = modal.querySelector('.modal-content');
+    if (content) {
+        content.inert = inert;
+    }
+};
+
+// Helper for loading forms into modals
+const loadForm = async (url, modalElement) => {
+    try {
+        const response = await csrfFetch(url);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const html = await response.text();
+        modalElement.querySelector('.modal-content').innerHTML = html;
+        return true;
+    } catch (error) {
+        console.error('Error loading form:', error);
+        alert('Failed to load form. Please try again.');
+        return false;
+    }
+};
+
+// Helper for handling JSON responses
+const handleResponse = async (response) => {
+    const data = await response.json();
+    if (data.status === 'error') {
+        throw new Error(data.message);
+    }
+    return data;
+};
+
 document.addEventListener('DOMContentLoaded', function () {
     // Get modal elements
     const loginModal = document.getElementById('loginModal');
     const registerModal = document.getElementById('registerModal');
-
-    // Get CSRF token from cookie
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
-    // Load login form when login modal is shown
-    loginModal.addEventListener('show.bs.modal', function (event) {
-        fetch('/accounts/login/', {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-            .then(response => response.text())
-            .then(html => {
-                this.querySelector('.modal-content').innerHTML = html;
-            });
-    });
-
-    // Load register form when register modal is shown
-    registerModal.addEventListener('show.bs.modal', function (event) {
-        fetch('/accounts/register/', {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-            .then(response => response.text())
-            .then(html => {
-                this.querySelector('.modal-content').innerHTML = html;
-            });
-    });
+    const passwordResetModal = document.getElementById('passwordResetModal');
 
     // Handle modal switching
-    document.addEventListener('click', function (e) {
+    document.addEventListener('click', async function (e) {
         if (e.target.matches('.register-link')) {
             e.preventDefault();
-            const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
-            const registerModal = new bootstrap.Modal(document.getElementById('registerModal'));
-            loginModal.hide();
-            registerModal.show();
+            const loginModalInstance = getOrCreateModal(loginModal);
+            const registerModalInstance = getOrCreateModal(registerModal);
+            loginModalInstance.hide();
+            registerModalInstance.show();
         }
         if (e.target.matches('.login-link')) {
             e.preventDefault();
-            const registerModal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
-            const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-            registerModal.hide();
-            loginModal.show();
+            const registerModalInstance = getOrCreateModal(registerModal);
+            const loginModalInstance = getOrCreateModal(loginModal);
+            registerModalInstance.hide();
+            loginModalInstance.show();
+        }
+        if (e.target.matches('#forgotPassword')) {
+            e.preventDefault();
+            const loginModalInstance = getOrCreateModal(loginModal);
+            const passwordResetModalInstance = getOrCreateModal(passwordResetModal);
+            loginModalInstance.hide();
+            passwordResetModalInstance.show();
         }
     });
 
     // Handle form submissions
-    document.addEventListener('submit', function (e) {
+    document.addEventListener('submit', async function (e) {
         const form = e.target;
         if (form.classList.contains('login-form') ||
             form.classList.contains('register-form') ||
@@ -72,92 +91,97 @@ document.addEventListener('DOMContentLoaded', function () {
             form.classList.contains('set-password-form')) {
             e.preventDefault();
 
-            // Remove any existing error messages
-            const existingError = form.querySelector('.alert');
-            if (existingError) {
-                existingError.remove();
-            }
-
-            const formData = new FormData(form);
-
-            // Get the CSRF token
-            const csrfToken = getCookie('csrftoken');
-
-            // Disable form submission while processing
             const submitButton = form.querySelector('button[type="submit"]');
             const originalButtonText = submitButton.innerHTML;
             submitButton.disabled = true;
             submitButton.innerHTML = 'Processing...';
 
-            fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-                .then(response => {
-                    if (!response.ok && response.status !== 400) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.text();
-                })
-                .then(responseText => {
-                    // Re-enable submit button
-                    submitButton.disabled = false;
-                    submitButton.innerHTML = originalButtonText;
-
-                    try {
-                        // Try to parse as JSON first
-                        const jsonResponse = JSON.parse(responseText);
-                        if (jsonResponse.error) {
-                            throw new Error(jsonResponse.error);
-                        }
-                        if (jsonResponse.redirect) {
-                            window.location.href = jsonResponse.redirect;
-                            return;
-                        }
-                    } catch (e) {
-                        // Not JSON, handle as HTML
-                        if (responseText.includes('window.location.href')) {
-                            // Successful login with redirect
-                            eval(responseText);
-                        } else if (responseText.includes('modal-content')) {
-                            // Server returned a new form with errors or next step
-                            const modalContent = form.closest('.modal-content');
-                            if (modalContent) {
-                                modalContent.innerHTML = responseText;
-                            } else {
-                                // If somehow we lost modal context, show in register modal
-                                registerModal.querySelector('.modal-content').innerHTML = responseText;
-                            }
-                        } else {
-                            // Show generic error message
-                            const errorDiv = document.createElement('div');
-                            errorDiv.className = 'alert alert-danger';
-                            errorDiv.textContent = 'An error occurred. Please try again.';
-                            form.insertBefore(errorDiv, form.firstChild);
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    submitButton.disabled = false;
-                    submitButton.innerHTML = originalButtonText;
-
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'alert alert-danger';
-                    errorDiv.textContent = error.message || 'An error occurred. Please try again.';
-                    form.insertBefore(errorDiv, form.firstChild);
+            try {
+                const formData = new FormData(form);
+                const response = await csrfFetch(form.action, {
+                    method: 'POST',
+                    body: formData
                 });
+
+                const data = await handleResponse(response);
+
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return;
+                }
+
+                if (data.html) {
+                    const modalContent = form.closest('.modal-content');
+                    if (modalContent) {
+                        modalContent.innerHTML = data.html;
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'alert alert-danger';
+                errorDiv.textContent = error.message || 'An error occurred. Please try again.';
+                form.insertBefore(errorDiv, form.firstChild);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalButtonText;
+            }
         }
     });
 
-    // Clean up modal content when hidden
-    [loginModal, registerModal].forEach(modal => {
-        modal.addEventListener('hidden.bs.modal', function () {
-            this.querySelector('.modal-content').innerHTML = '';
+    // Handle password reset code sending
+    document.addEventListener('click', async function (e) {
+        if (e.target.matches('#sendResetCode')) {
+            e.preventDefault();
+            const form = document.getElementById('resetPasswordForm');
+            if (!form) return;
+
+            try {
+                const formData = new FormData(form);
+                const response = await csrfFetch('/accounts/password-reset/', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await handleResponse(response);
+                if (data.html) {
+                    const modalContent = form.closest('.modal-content');
+                    if (modalContent) {
+                        modalContent.innerHTML = data.html;
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'alert alert-danger';
+                errorDiv.textContent = error.message || 'An error occurred. Please try again.';
+                form.insertBefore(errorDiv, form.firstChild);
+            }
+        }
+    });
+
+    // Focus and inert management for modals
+    [loginModal, registerModal, passwordResetModal].forEach(modal => {
+        if (!modal) return;
+
+        modal.addEventListener('show.bs.modal', () => {
+            setModalInert(modal, false);
+        });
+
+        modal.addEventListener('hide.bs.modal', () => {
+            setModalInert(modal, true);
+            // Remove focus from active element
+            if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur();
+            }
+        });
+
+        modal.addEventListener('hidden.bs.modal', () => {
+            // Clear modal content after hiding
+            const content = modal.querySelector('.modal-content');
+            if (content) {
+                content.innerHTML = '';
+            }
         });
     });
 }); 

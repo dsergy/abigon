@@ -1,0 +1,44 @@
+{% load static %}
+
+<div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title">{% block modal_title %}{% endblock %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        {% block modal_content %}{% endblock %}
+    </div>
+    {% block modal_footer %}{% endblock %}
+</div>
+
+<style>
+    .modal-content {
+        border-radius: var(--button-radius);
+        border: none;
+    }
+
+    .modal-header {
+        border-bottom: 1px solid rgba(12, 26, 50, 0.1);
+        padding: 1.5rem;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .modal-footer {
+        border-top: 1px solid rgba(12, 26, 50, 0.1);
+        padding: 1.5rem;
+    }
+
+    .form-control {
+        border-radius: var(--button-radius);
+        border: 1px solid rgba(12, 26, 50, 0.1);
+        padding: 0.75rem;
+    }
+
+    .form-control:focus {
+        border-color: var(--button-bg);
+        box-shadow: 0 0 0 0.2rem rgba(15, 29, 53, 0.25);
+    }
+</style>

@@ -2,30 +2,34 @@
 
 <div class="modal-content">
     <div class="modal-header">
-        <h5 class="modal-title">Register</h5>
+        <h5 class="modal-title">Create Account</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
     <div class="modal-body">
+        <div id="registerErrorContainer"></div>
         <form method="post" action="{% url 'accounts:register_email' %}" class="register-form">
             {% csrf_token %}
+            <input type="hidden" name="username" autocomplete="username">
             {% if error %}
             <div class="alert alert-danger">
                 {{ error }}
             </div>
             {% endif %}
             <div class="mb-3">
-                <label for="name" class="form-label">Name</label>
-                <input type="text" name="name" class="form-control" id="name" required>
+                <label for="name" class="form-label">Full Name</label>
+                <input type="text" name="name" class="form-control" id="name" required autocomplete="name"
+                    placeholder="Enter your full name">
             </div>
             <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" name="email" class="form-control" id="email" required>
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" name="email" class="form-control" id="email" required autocomplete="email"
+                    placeholder="Enter your email">
             </div>
             <button type="submit" class="btn btn-primary w-100">Continue</button>
         </form>
     </div>
     <div class="modal-footer justify-content-center">
-        <p class="mb-0">Already have an account? <a href="#" class="login-link">Login</a></p>
+        <p class="mb-0">Already have an account? <a href="#" class="login-link">Sign In</a></p>
     </div>
 </div>
 
@@ -33,6 +37,7 @@
     .modal-content {
         border-radius: var(--button-radius);
         border: none;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
     }
 
     .modal-header {
@@ -60,12 +65,40 @@
         box-shadow: 0 0 0 0.2rem rgba(15, 29, 53, 0.25);
     }
 
+    .btn-primary {
+        background-color: var(--button-bg);
+        border-color: var(--button-bg);
+        padding: 0.75rem;
+        font-weight: 500;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .btn-primary:hover {
+        background-color: var(--button-bg);
+        border-color: var(--button-bg);
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
     .login-link {
         color: var(--button-bg);
         text-decoration: none;
+        font-weight: 500;
     }
 
     .login-link:hover {
         text-decoration: underline;
+    }
+
+    #registerErrorContainer {
+        margin-bottom: 1rem;
+    }
+
+    .alert-danger {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+        border: none;
+        border-radius: var(--button-radius);
+        padding: 1rem;
     }
 </style>

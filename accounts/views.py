@@ -9,43 +9,49 @@ from django.core.validators import RegexValidator
 import jwt
 import random
 from datetime import datetime, timedelta
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 from django.core.files.storage import default_storage
 import json
 import re
 import string
+from django.template.loader import render_to_string
 
 User = get_user_model()
 
 def login_view(request):
     """Handle login form display and submission."""
     if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                remember = request.POST.get('remember')
-                if not remember:
-                    request.session.set_expiry(0)
-                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                    return JsonResponse({'redirect': '/'})
-                return redirect('home')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        
+        if not email or not password:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Email and password are required'
+                }, status=400)
+            return render(request, 'accounts/login.html', {'error': 'Email and password are required'})
+        
+        user = authenticate(username=email, password=password)
+        if user is not None:
+            login(request, user)
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'success',
+                    'redirect': '/'
+                })
+            return redirect('home')
         
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            errors = []
-            for field, field_errors in form.errors.items():
-                for error in field_errors:
-                    errors.append(f"{field}: {error}" if field != '__all__' else error)
-            return JsonResponse({'error': ' '.join(errors)}, status=400)
-        return render(request, 'accounts/login.html', {'form': form})
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid email or password'
+            }, status=400)
+        return render(request, 'accounts/login.html', {'error': 'Invalid email or password'})
     
-    form = AuthenticationForm()
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return render(request, 'accounts/login_modal.html', {'form': form})
-    return render(request, 'accounts/login.html', {'form': form})
+        return render(request, 'accounts/modals/login_modal.html')
+    return render(request, 'accounts/login.html')
 
 def generate_verification_code():
     return str(random.randint(100000, 999999))
@@ -104,13 +110,6 @@ def register_email(request):
         request.session['registration_name'] = name
         print("Token and name stored in session")
         
-        # Debug output
-        print(f"Email settings:")
-        print(f"EMAIL_HOST_USER: {settings.EMAIL_HOST_USER}")
-        print(f"DEFAULT_FROM_EMAIL: {settings.DEFAULT_FROM_EMAIL}")
-        print(f"EMAIL_HOST: {settings.EMAIL_HOST}")
-        print(f"EMAIL_PORT: {settings.EMAIL_PORT}")
-        
         # Send verification email
         try:
             print("Attempting to send email...")
@@ -133,14 +132,20 @@ def register_email(request):
             'email': email
         }
         print("Rendering verify_code template")
+        
+        # Always return JSON for AJAX requests
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return render(request, 'accounts/modals/verify_code.html', context)
+            html = render_to_string('accounts/modals/verify_code.html', context, request)
+            return JsonResponse({
+                'status': 'success',
+                'html': html
+            })
         return render(request, 'accounts/modals/verify_code.html', context)
     except Exception as e:
         print(f"General error: {str(e)}")
         return JsonResponse({
             'status': 'error',
-            'message': 'An error occurred. Please try again.'
+            'message': str(e)
         }, status=500)
 
 def verify_code(request):
@@ -157,16 +162,24 @@ def verify_code(request):
                 'email': email
             }
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return render(request, 'accounts/verify_code.html', context)
-            return render(request, 'accounts/verify_code.html', context)
+                html = render_to_string('accounts/modals/verify_code.html', context, request)
+                return JsonResponse({
+                    'status': 'error',
+                    'html': html
+                })
+            return render(request, 'accounts/modals/verify_code.html', context)
         
         context = {
             'email': email,
             'token': token
         }
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return render(request, 'accounts/set_password.html', context)
-        return render(request, 'accounts/set_password.html', context)
+            html = render_to_string('accounts/modals/set_password.html', context, request)
+            return JsonResponse({
+                'status': 'success',
+                'html': html
+            })
+        return render(request, 'accounts/modals/set_password.html', context)
     
     return HttpResponse('Invalid request', status=400)
 
@@ -186,8 +199,12 @@ def complete_registration(request):
                 'token': token
             }
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return render(request, 'accounts/set_password.html', context)
-            return render(request, 'accounts/set_password.html', context)
+                html = render_to_string('accounts/modals/set_password.html', context, request)
+                return JsonResponse({
+                    'status': 'error',
+                    'html': html
+                })
+            return render(request, 'accounts/modals/set_password.html', context)
             
         payload = verify_token(token)
         if not payload or payload['email'] != email:
@@ -197,8 +214,12 @@ def complete_registration(request):
                 'token': token
             }
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return render(request, 'accounts/set_password.html', context)
-            return render(request, 'accounts/set_password.html', context)
+                html = render_to_string('accounts/modals/set_password.html', context, request)
+                return JsonResponse({
+                    'status': 'error',
+                    'html': html
+                })
+            return render(request, 'accounts/modals/set_password.html', context)
             
         try:
             user = User.objects.create_user(
@@ -210,7 +231,10 @@ def complete_registration(request):
             user.backend = 'django.contrib.auth.backends.ModelBackend'
             login(request, user)
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'redirect': '/'})
+                return JsonResponse({
+                    'status': 'success',
+                    'redirect': '/'
+                })
             return redirect('home')
         except Exception as e:
             context = {
@@ -219,8 +243,12 @@ def complete_registration(request):
                 'token': token
             }
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return render(request, 'accounts/set_password.html', context)
-            return render(request, 'accounts/set_password.html', context)
+                html = render_to_string('accounts/modals/set_password.html', context, request)
+                return JsonResponse({
+                    'status': 'error',
+                    'html': html
+                })
+            return render(request, 'accounts/modals/set_password.html', context)
     
     return HttpResponse('Invalid request', status=400)
 
@@ -450,3 +478,15 @@ def delete_account(request):
             'status': 'error',
             'message': str(e)
         }, status=500)
+
+@require_http_methods(['GET'])
+def login_modal(request):
+    """Render login form modal."""
+    print("=== LOGIN MODAL VIEW CALLED ===")
+    print("Request method:", request.method)
+    print("Request headers:", request.headers)
+    print("Request path:", request.path)
+    response = render(request, 'accounts/modals/login_modal.html')
+    print("Response status:", response.status_code)
+    print("Response content:", response.content)
+    return response

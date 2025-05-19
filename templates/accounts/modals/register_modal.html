@@ -10,6 +10,7 @@
         <form method="post" action="{% url 'accounts:register_email' %}" class="register-form">
             {% csrf_token %}
             <input type="hidden" name="username" autocomplete="username">
+            <input type="hidden" name="g-recaptcha-response" id="recaptchaResponse">
             {% if error %}
             <div class="alert alert-danger">
                 {{ error }}
@@ -30,9 +31,6 @@
                 <label for="website">Website</label>
                 <input type="text" name="website" id="website" autocomplete="off">
             </div>
-            <!-- reCAPTCHA -->
-            <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}" data-callback="onRecaptchaSuccess"
-                data-action="register"></div>
             <button type="submit" class="btn btn-primary w-100" id="register-submit" disabled>Continue</button>
         </form>
     </div>
@@ -110,3 +108,42 @@
         padding: 1rem;
     }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const registerForm = document.querySelector('.register-form');
+        const submitButton = document.querySelector('#register-submit');
+
+        if (registerForm && submitButton) {
+            // Добавляем обработчик отправки формы
+            registerForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                grecaptcha.execute('{{ recaptcha_site_key }}', { action: 'register' })
+                    .then(function (token) {
+                        // Добавляем токен в форму
+                        document.getElementById('recaptchaResponse').value = token;
+
+                        // Отправляем форму
+                        registerForm.submit();
+                    })
+                    .catch(function (error) {
+                        console.error('reCAPTCHA Error:', error);
+                        // Показываем ошибку пользователю
+                        const errorContainer = document.getElementById('registerErrorContainer');
+                        if (errorContainer) {
+                            errorContainer.innerHTML = '<div class="alert alert-danger">Error validating reCAPTCHA. Please try again.</div>';
+                        }
+                    });
+            });
+
+            // Периодически обновляем токен
+            setInterval(function () {
+                grecaptcha.execute('{{ recaptcha_site_key }}', { action: 'register' })
+                    .then(function (token) {
+                        document.getElementById('recaptchaResponse').value = token;
+                    });
+            }, 90000); // Обновляем каждые 90 секунд
+        }
+    });
+</script>

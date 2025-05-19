@@ -15,6 +15,7 @@ import json
 import re
 import string
 from django.template.loader import render_to_string
+import requests
 
 User = get_user_model()
 
@@ -24,12 +25,24 @@ def get_recaptcha_context():
         'recaptcha_site_key': settings.RECAPTCHA_PUBLIC_KEY
     }
 
+def verify_recaptcha(token):
+    """Verify reCAPTCHA token"""
+    url = 'https://www.google.com/recaptcha/api/siteverify'
+    data = {
+        'secret': settings.RECAPTCHA_PRIVATE_KEY,
+        'response': token
+    }
+    r = requests.post(url, data=data)
+    result = r.json()
+    return result.get('success', False) and result.get('score', 0) >= settings.RECAPTCHA_SCORE_THRESHOLD
+
 def login_view(request):
     """Handle login form display and submission."""
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
         website = request.POST.get('website', '')  # Get honeypot field
+        recaptcha_token = request.POST.get('g-recaptcha-response')
         
         # Check honeypot
         if website:  # If honeypot field is filled, it's a bot
@@ -41,6 +54,18 @@ def login_view(request):
                 }, status=400)
             return render(request, 'accounts/modals/login_modal.html', {
                 'error': 'Invalid form submission',
+                **get_recaptcha_context()
+            })
+        
+        # Verify reCAPTCHA
+        if not recaptcha_token or not verify_recaptcha(recaptcha_token):
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Invalid reCAPTCHA. Please try again.'
+                }, status=400)
+            return render(request, 'accounts/modals/login_modal.html', {
+                'error': 'Invalid reCAPTCHA. Please try again.',
                 **get_recaptcha_context()
             })
         
@@ -70,8 +95,8 @@ def login_view(request):
         return render(request, 'accounts/login.html', {'error': 'Invalid email or password'})
     
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return render(request, 'accounts/modals/login_modal.html')
-    return render(request, 'accounts/login.html')
+        return render(request, 'accounts/modals/login_modal.html', get_recaptcha_context())
+    return render(request, 'accounts/login.html', get_recaptcha_context())
 
 def generate_verification_code():
     return str(random.randint(100000, 999999))
@@ -102,6 +127,7 @@ def register_email(request):
         email = request.POST.get('email')
         name = request.POST.get('name')
         website = request.POST.get('website', '')  # Get honeypot field
+        recaptcha_token = request.POST.get('g-recaptcha-response')
         
         # Check honeypot
         if website:  # If honeypot field is filled, it's a bot
@@ -113,6 +139,18 @@ def register_email(request):
                 }, status=400)
             return render(request, 'accounts/modals/register_modal.html', {
                 'error': 'Invalid form submission',
+                **get_recaptcha_context()
+            })
+
+        # Verify reCAPTCHA
+        if not recaptcha_token or not verify_recaptcha(recaptcha_token):
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Invalid reCAPTCHA. Please try again.'
+                }, status=400)
+            return render(request, 'accounts/modals/register_modal.html', {
+                'error': 'Invalid reCAPTCHA. Please try again.',
                 **get_recaptcha_context()
             })
 

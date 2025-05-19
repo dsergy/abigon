@@ -101,6 +101,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'classifieds.context_processors.recaptcha',  # Add reCAPTCHA context processor
             ],
         },
     },
@@ -273,7 +274,23 @@ HONEYPOT_EMAIL_FIELD_NAME = 'email'  # Add this to check email field
 HONEYPOT_EMAIL_VERIFIER = 'honeypot.middleware.HoneypotViewMiddleware'  # Add this to verify email
 
 # reCAPTCHA settings
-RECAPTCHA_PUBLIC_KEY = '6LebiT8rAAAAACmnb3ljrSBBOVJaRka9i1J480I5'
-RECAPTCHA_PRIVATE_KEY = '6LebiT8rAAAAANG0K50W6NMi4L4gK33dyWYmk_CO'
-RECAPTCHA_DEFAULT_ACTION = 'generic'
-RECAPTCHA_SCORE_THRESHOLD = 0.5
+RECAPTCHA_PUBLIC_KEY = os.environ.get('RECAPTCHA_PUBLIC_KEY', '6LebiT8rAAAAACmnb3ljrSBBOVJaRka9i1J480I5')
+RECAPTCHA_PRIVATE_KEY = os.environ.get('RECAPTCHA_PRIVATE_KEY')
+RECAPTCHA_SCORE_THRESHOLD = float(os.environ.get('RECAPTCHA_SCORE_THRESHOLD', '0.5'))  # Minimum score required to pass verification
+
+# Logging settings
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'classifieds.context_processors': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
+}

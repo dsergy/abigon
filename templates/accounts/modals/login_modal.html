@@ -1,6 +1,9 @@
 {% load static %}
 {% load socialaccount %}
 
+<!-- Add jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
 <div class="modal-content">
     <div class="modal-header">
         <h5 class="modal-title">Sign In</h5>
@@ -11,6 +14,7 @@
         <form method="post" action="{% url 'accounts:login' %}" class="login-form">
             {% csrf_token %}
             <input type="hidden" name="username" autocomplete="username">
+            <input type="hidden" name="g-recaptcha-response" id="recaptchaResponse">
             {% if error %}
             <div class="alert alert-danger">
                 {{ error }}
@@ -36,9 +40,6 @@
                 <label for="website">Website</label>
                 <input type="text" name="website" id="website" autocomplete="off">
             </div>
-            <!-- reCAPTCHA -->
-            <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}" data-callback="onRecaptchaSuccess"
-                data-action="login"></div>
             <button type="submit" class="btn btn-primary w-100" id="login-submit" disabled>Sign In</button>
         </form>
 
@@ -179,24 +180,68 @@
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const toggleButtons = document.querySelectorAll('.toggle-password');
-        toggleButtons.forEach(button => {
-            button.addEventListener('click', function () {
-                const targetId = this.dataset.target;
-                const input = document.getElementById(targetId);
-                const icon = this.querySelector('i');
+    console.log('Script loaded'); // Проверка загрузки скрипта
 
-                if (input.type === 'password') {
-                    input.type = 'text';
-                    icon.classList.remove('fa-eye');
-                    icon.classList.add('fa-eye-slash');
-                } else {
-                    input.type = 'password';
-                    icon.classList.remove('fa-eye-slash');
-                    icon.classList.add('fa-eye');
-                }
+    // Add function to window object to make it globally available
+    window.togglePassword = function (button) {
+        console.log('Toggle password clicked');
+        const targetId = button.getAttribute('data-target');
+        console.log('Target ID:', targetId);
+        const input = document.getElementById(targetId);
+        console.log('Input element:', input);
+        const icon = button.querySelector('i');
+        console.log('Icon element:', icon);
+
+        if (input && icon) {
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const loginForm = document.querySelector('.login-form');
+        const submitButton = document.querySelector('#login-submit');
+
+        if (loginForm && submitButton) {
+            // Добавляем обработчик отправки формы
+            loginForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                grecaptcha.execute('{{ recaptcha_site_key }}', { action: 'login' })
+                    .then(function (token) {
+                        // Добавляем токен в форму
+                        document.getElementById('recaptchaResponse').value = token;
+
+                        // Отправляем форму
+                        loginForm.submit();
+                    })
+                    .catch(function (error) {
+                        console.error('reCAPTCHA Error:', error);
+                        // Показываем ошибку пользователю
+                        const errorContainer = document.getElementById('loginErrorContainer');
+                        if (errorContainer) {
+                            errorContainer.innerHTML = '<div class="alert alert-danger">Error validating reCAPTCHA. Please try again.</div>';
+                        }
+                    });
             });
-        });
+
+            // Периодически обновляем токен
+            setInterval(function () {
+                grecaptcha.execute('{{ recaptcha_site_key }}', { action: 'login' })
+                    .then(function (token) {
+                        document.getElementById('recaptchaResponse').value = token;
+                    });
+            }, 90000); // Обновляем каждые 90 секунд
+        }
     });
+
+    // Log that script is loaded
+    console.log('Login modal script loaded');
 </script>

@@ -1,0 +1,32 @@
+{% load static %}
+<div class="modal-header">
+    <h5 class="modal-title" id="loginModalLabel">Login</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <form id="loginForm" class="login-form" method="post" action="{% url 'accounts:login' %}"
+        hx-post="{% url 'accounts:login' %}" hx-swap="none">
+        {% csrf_token %}
+        <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response">
+        <div class="mb-3">
+            <label for="id_username" class="form-label">Username</label>
+            <input type="text" class="form-control" id="id_username" name="username" required>
+        </div>
+        <div class="mb-3">
+            <label for="id_password" class="form-label">Password</label>
+            <div class="input-group">
+                <input type="password" class="form-control" id="id_password" name="password" required>
+                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="id_password">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+        </div>
+        <div class="d-grid">
+            <button type="submit" class="btn btn-primary" id="login-submit" disabled>Login</button>
+        </div>
+    </form>
+    <div class="mt-3 text-center">
+        <p class="mb-0">Don't have an account? <a href="#" class="register-link" data-bs-toggle="modal"
+                data-bs-target="#registerModal" data-bs-dismiss="modal">Register</a></p>
+    </div>
+</div>

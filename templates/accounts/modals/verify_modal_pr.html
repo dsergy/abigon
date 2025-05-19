@@ -1,0 +1,107 @@
+{% load static %}
+
+<div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title">Verify Reset Code</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <div id="verifyErrorContainer"></div>
+        <form method="post" action="{% url 'accounts:password_reset_verify' %}" class="verify-form">
+            {% csrf_token %}
+            {% if error %}
+            <div class="alert alert-danger">
+                {{ error }}
+            </div>
+            {% endif %}
+            <div class="mb-3">
+                <p class="text-muted">We've sent a verification code to {{ email }}</p>
+                <label for="code" class="form-label">Verification Code</label>
+                <input type="text" name="code" class="form-control" id="code" required autocomplete="one-time-code"
+                    placeholder="Enter 6-digit code">
+            </div>
+            <!-- Honeypot field -->
+            <div style="display:none;">
+                <label for="website">Website</label>
+                <input type="text" name="website" id="website" autocomplete="off">
+            </div>
+            <!-- reCAPTCHA -->
+            <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}" data-callback="onRecaptchaSuccess"
+                data-action="password_reset_verify"></div>
+            <button type="submit" class="btn btn-primary w-100" id="verify-submit" disabled>Verify Code</button>
+        </form>
+    </div>
+    <div class="modal-footer justify-content-center">
+        <p class="mb-0">Didn't receive the code? <a href="#" class="resend-link">Resend Code</a></p>
+    </div>
+</div>
+
+<style>
+    .modal-content {
+        border-radius: var(--button-radius);
+        border: none;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    .modal-header {
+        border-bottom: 1px solid rgba(12, 26, 50, 0.1);
+        padding: 1.5rem;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .modal-footer {
+        border-top: 1px solid rgba(12, 26, 50, 0.1);
+        padding: 1.5rem;
+    }
+
+    .form-control {
+        border-radius: var(--button-radius);
+        border: 1px solid rgba(12, 26, 50, 0.1);
+        padding: 0.75rem;
+    }
+
+    .form-control:focus {
+        border-color: var(--button-bg);
+        box-shadow: 0 0 0 0.2rem rgba(15, 29, 53, 0.25);
+    }
+
+    .btn-primary {
+        background-color: var(--button-bg);
+        border-color: var(--button-bg);
+        padding: 0.75rem;
+        font-weight: 500;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .btn-primary:hover {
+        background-color: var(--button-bg);
+        border-color: var(--button-bg);
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    .resend-link {
+        color: var(--button-bg);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .resend-link:hover {
+        text-decoration: underline;
+    }
+
+    #verifyErrorContainer {
+        margin-bottom: 1rem;
+    }
+
+    .alert-danger {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+        border: none;
+        border-radius: var(--button-radius);
+        padding: 1rem;
+    }
+</style>

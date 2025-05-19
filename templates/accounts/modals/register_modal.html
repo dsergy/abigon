@@ -30,7 +30,10 @@
                 <label for="website">Website</label>
                 <input type="text" name="website" id="website" autocomplete="off">
             </div>
-            <button type="submit" class="btn btn-primary w-100">Continue</button>
+            <!-- reCAPTCHA -->
+            <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}" data-callback="onRecaptchaSuccess"
+                data-action="register"></div>
+            <button type="submit" class="btn btn-primary w-100" id="register-submit" disabled>Continue</button>
         </form>
     </div>
     <div class="modal-footer justify-content-center">

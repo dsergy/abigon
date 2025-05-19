@@ -36,7 +36,10 @@
                 <label for="website">Website</label>
                 <input type="text" name="website" id="website" autocomplete="off">
             </div>
-            <button type="submit" class="btn btn-primary w-100">Sign In</button>
+            <!-- reCAPTCHA -->
+            <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}" data-callback="onRecaptchaSuccess"
+                data-action="login"></div>
+            <button type="submit" class="btn btn-primary w-100" id="login-submit" disabled>Sign In</button>
         </form>
 
         <div class="social-login mt-4">

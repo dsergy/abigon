@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     'django_htmx',
     'honeypot',  # Add honeypot
+    'captcha',  # Add django-recaptcha
     
     # Local apps
     'ads.apps.AdsConfig',
@@ -270,3 +271,9 @@ HONEYPOT_RESPONSE = 'Invalid form submission'  # Custom error message
 HONEYPOT_LOG_ATTEMPTS = True  # Log spam attempts
 HONEYPOT_EMAIL_FIELD_NAME = 'email'  # Add this to check email field
 HONEYPOT_EMAIL_VERIFIER = 'honeypot.middleware.HoneypotViewMiddleware'  # Add this to verify email
+
+# reCAPTCHA settings
+RECAPTCHA_PUBLIC_KEY = '6LebiT8rAAAAACmnb3ljrSBBOVJaRka9i1J480I5'
+RECAPTCHA_PRIVATE_KEY = '6LebiT8rAAAAANG0K50W6NMi4L4gK33dyWYmk_CO'
+RECAPTCHA_DEFAULT_ACTION = 'generic'
+RECAPTCHA_SCORE_THRESHOLD = 0.5

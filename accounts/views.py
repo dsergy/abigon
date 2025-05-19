@@ -18,6 +18,12 @@ from django.template.loader import render_to_string
 
 User = get_user_model()
 
+def get_recaptcha_context():
+    """Get reCAPTCHA context for templates."""
+    return {
+        'recaptcha_site_key': settings.RECAPTCHA_PUBLIC_KEY
+    }
+
 def login_view(request):
     """Handle login form display and submission."""
     if request.method == 'POST':
@@ -33,7 +39,10 @@ def login_view(request):
                     'status': 'error',
                     'message': 'Invalid form submission'
                 }, status=400)
-            return render(request, 'accounts/login.html', {'error': 'Invalid form submission'})
+            return render(request, 'accounts/modals/login_modal.html', {
+                'error': 'Invalid form submission',
+                **get_recaptcha_context()
+            })
         
         if not email or not password:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -97,10 +106,15 @@ def register_email(request):
         # Check honeypot
         if website:  # If honeypot field is filled, it's a bot
             print("Honeypot triggered - website field filled")
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Invalid form submission'
-            }, status=400)
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Invalid form submission'
+                }, status=400)
+            return render(request, 'accounts/modals/register_modal.html', {
+                'error': 'Invalid form submission',
+                **get_recaptcha_context()
+            })
 
         print(f"Received data - email: {email}, name: {name}")
 

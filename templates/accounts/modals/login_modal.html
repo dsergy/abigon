@@ -6,7 +6,7 @@
 
 <div class="modal-content">
     <div class="modal-header">
-        <h5 class="modal-title">Sign In</h5>
+        <h5 class="modal-title" style="font-size: 2rem;">Login</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
     <div class="modal-body">
@@ -40,14 +40,14 @@
                 <label for="website">Website</label>
                 <input type="text" name="website" id="website" autocomplete="off">
             </div>
-            <button type="submit" class="btn btn-primary w-100" id="login-submit" disabled>Sign In</button>
+            <button type="submit" class="btn btn-primary w-100" id="login-submit" disabled>Login</button>
         </form>
 
         <div class="social-login mt-4">
-            <p class="text-center mb-3">Or sign in with</p>
+            <p class="text-center mb-3">Or Login with</p>
             <div class="d-flex justify-content-center gap-3">
                 <a href="{% provider_login_url 'google' %}"
-                    class="btn btn-outline-dark d-flex align-items-center justify-content-center gap-2">
+                    class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2">
                     <img src="{% static 'img/google-icon.svg' %}" alt="Google" width="20" height="20">
                     Google
                 </a>
@@ -60,7 +60,8 @@
         </div>
     </div>
     <div class="modal-footer justify-content-center">
-        <p class="mb-0">Don't have an account? <a href="#" class="register-link">Create Account</a></p>
+        <p class="mb-0 text-muted">Don't have an account? <a href="#" class="register-link"
+                style="font-weight: bold;">Create Account</a></p>
     </div>
 </div>
 

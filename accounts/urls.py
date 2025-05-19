@@ -11,6 +11,9 @@ urlpatterns = [
     path('register/email/', views.register_email, name='register_email'),
     path('register/verify/', views.verify_code, name='verify_code'),
     path('register/complete/', views.complete_registration, name='complete_registration'),
+    path('password-reset/', views.password_reset_request, name='password_reset_request'),
+    path('password-reset/verify/', views.password_reset_verify, name='password_reset_verify'),
+    path('password-reset/confirm/', views.password_reset_confirm, name='password_reset_confirm'),
     
     # Profile URLs
     path('profile/', views.profile_view, name='profile'),

@@ -16,6 +16,7 @@ import re
 import string
 from django.template.loader import render_to_string
 import requests
+from django.core.cache import cache
 
 User = get_user_model()
 
@@ -99,7 +100,8 @@ def login_view(request):
     return render(request, 'accounts/login.html', get_recaptcha_context())
 
 def generate_verification_code():
-    return str(random.randint(100000, 999999))
+    """Generate a 6-digit verification code."""
+    return ''.join(random.choices(string.digits, k=6))
 
 def generate_token(email, code):
     payload = {
@@ -597,3 +599,181 @@ def login_modal(request):
     print("Response status:", response.status_code)
     print("Response content:", response.content)
     return response
+
+def send_verification_email(email, code):
+    """Send verification code to user's email."""
+    subject = 'Password Reset Verification Code'
+    message = f'Your verification code is: {code}\n\nIf you did not request this password reset, please contact support immediately.'
+    from_email = settings.DEFAULT_FROM_EMAIL
+    recipient_list = [email]
+    send_mail(subject, message, from_email, recipient_list)
+
+def password_reset_request(request):
+    """Handle password reset request."""
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        website = request.POST.get('website', '')  # Honeypot field
+        recaptcha_token = request.POST.get('g-recaptcha-response')
+        
+        # Check honeypot
+        if website:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid form submission'
+            }, status=400)
+        
+        # Verify reCAPTCHA
+        if not recaptcha_token or not verify_recaptcha(recaptcha_token):
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid reCAPTCHA. Please try again.'
+            }, status=400)
+        
+        # Check if user exists
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'No user found with this email address.'
+            }, status=400)
+        
+        # Generate and store verification code
+        code = generate_verification_code()
+        cache_key = f'password_reset_{email}'
+        cache.set(cache_key, code, timeout=300)  # Code expires in 5 minutes
+        
+        # Store email in session
+        request.session['reset_email'] = email
+        
+        # Send verification email
+        send_verification_email(email, code)
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Verification code sent to your email.'
+        })
+    
+    return render(request, 'accounts/modals/email_modal_pr.html', get_recaptcha_context())
+
+def password_reset_verify(request):
+    """Verify the reset code."""
+    if request.method == 'POST':
+        code = request.POST.get('code')
+        website = request.POST.get('website', '')  # Honeypot field
+        
+        # Check honeypot
+        if website:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid form submission'
+            }, status=400)
+        
+        # Get email from session
+        email = request.session.get('reset_email')
+        if not email:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Session expired. Please try again.'
+            }, status=400)
+        
+        # Verify code
+        cache_key = f'password_reset_{email}'
+        stored_code = cache.get(cache_key)
+        
+        if not stored_code or code != stored_code:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid or expired verification code.'
+            }, status=400)
+        
+        # Generate reset token
+        reset_token = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+        cache_key = f'reset_token_{email}'
+        cache.set(cache_key, reset_token, timeout=300)  # Token expires in 5 minutes
+        
+        # Render set password form with email and token
+        html = render_to_string('accounts/modals/set_password_pr.html', {
+            'email': email,
+            'token': reset_token
+        }, request)
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Code verified successfully.',
+            'html': html,
+            'email': email,
+            'token': reset_token
+        })
+    
+    # Get email from session for display
+    email = request.session.get('reset_email')
+    return render(request, 'accounts/modals/verify_modal_pr.html', {'email': email})
+
+def password_reset_confirm(request):
+    """Set new password."""
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        token = request.POST.get('token')
+        password1 = request.POST.get('password1')
+        password2 = request.POST.get('password2')
+        website = request.POST.get('website', '')  # Honeypot field
+        
+        # Check honeypot
+        if website:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid form submission'
+            }, status=400)
+        
+        # Verify token
+        cache_key = f'reset_token_{email}'
+        stored_token = cache.get(cache_key)
+        
+        if not stored_token or token != stored_token:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid or expired reset token.'
+            }, status=400)
+        
+        # Validate passwords
+        if password1 != password2:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Passwords do not match.'
+            }, status=400)
+        
+        if len(password1) < 8:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Password must be at least 8 characters long.'
+            }, status=400)
+        
+        # Update password
+        try:
+            user = User.objects.get(email=email)
+            user.set_password(password1)
+            user.save()
+            
+            # Clear cache
+            cache.delete(cache_key)
+            cache.delete(f'password_reset_{email}')
+            
+            # Send confirmation email
+            subject = 'Password Reset Successful'
+            message = 'Your password has been successfully reset. If you did not make this change, please contact support immediately.'
+            from_email = settings.DEFAULT_FROM_EMAIL
+            recipient_list = [email]
+            send_mail(subject, message, from_email, recipient_list)
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Password reset successful.'
+            })
+        except User.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'User not found.'
+            }, status=400)
+    
+    return render(request, 'accounts/modals/set_password_pr.html')

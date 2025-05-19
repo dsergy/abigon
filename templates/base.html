@@ -119,6 +119,34 @@
         </div>
     </div>
 
+    <!-- Password Reset Modals -->
+    <div class="modal fade" id="emailModal" tabindex="-1" aria-labelledby="emailModalLabel" aria-hidden="true"
+        data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="verifyModal" tabindex="-1" aria-labelledby="verifyModalLabel" aria-hidden="true"
+        data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="setPasswordModal" tabindex="-1" aria-labelledby="setPasswordModalLabel"
+        aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <!-- Bootstrap JS -->
@@ -161,21 +189,29 @@
 
         // Function to enable buttons and get tokens
         function enableButtonsAndGetTokens() {
-            // Enable all submit buttons
-            const buttons = document.querySelectorAll('form button[type="submit"]');
-            buttons.forEach(button => {
-                button.disabled = false;
-            });
-
             // Get initial tokens for all forms
             const forms = document.querySelectorAll('form');
             forms.forEach(form => {
-                const action = form.classList.contains('login-form') ? 'login' : 'register';
+                let action = 'register';
+                if (form.classList.contains('login-form')) {
+                    action = 'login';
+                } else if (form.classList.contains('password-reset-form')) {
+                    action = 'password_reset';
+                } else if (form.classList.contains('verify-form')) {
+                    action = 'password_reset_verify';
+                } else if (form.classList.contains('set-password-form')) {
+                    action = 'password_reset_confirm';
+                }
+
                 grecaptcha.execute('{{ recaptcha_site_key }}', { action: action })
                     .then(function (token) {
                         const input = form.querySelector('input[name="g-recaptcha-response"]');
                         if (input) {
                             input.value = token;
+                        }
+                        const submitButton = form.querySelector('button[type="submit"]');
+                        if (submitButton) {
+                            submitButton.disabled = false;
                         }
                     })
                     .catch(function (error) {
@@ -189,20 +225,21 @@
             initRecaptcha();
 
             // Add event listeners for modal show events
-            const loginModal = document.getElementById('loginModal');
-            const registerModal = document.getElementById('registerModal');
+            const modals = [
+                document.getElementById('loginModal'),
+                document.getElementById('registerModal'),
+                document.getElementById('emailModal'),
+                document.getElementById('verifyModal'),
+                document.getElementById('setPasswordModal')
+            ];
 
-            if (loginModal) {
-                loginModal.addEventListener('shown.bs.modal', function () {
-                    enableButtonsAndGetTokens();
-                });
-            }
-
-            if (registerModal) {
-                registerModal.addEventListener('shown.bs.modal', function () {
-                    enableButtonsAndGetTokens();
-                });
-            }
+            modals.forEach(modal => {
+                if (modal) {
+                    modal.addEventListener('shown.bs.modal', function () {
+                        enableButtonsAndGetTokens();
+                    });
+                }
+            });
         });
 
         // Initialize reCAPTCHA when HTMX loads content

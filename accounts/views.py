@@ -17,6 +17,7 @@ import string
 from django.template.loader import render_to_string
 import requests
 from django.core.cache import cache
+import secrets
 
 User = get_user_model()
 
@@ -615,6 +616,8 @@ def password_reset_request(request):
         website = request.POST.get('website', '')  # Honeypot field
         recaptcha_token = request.POST.get('g-recaptcha-response')
         
+        print(f"Password reset request for email: {email}")
+        
         # Check honeypot
         if website:
             return JsonResponse({
@@ -640,7 +643,9 @@ def password_reset_request(request):
         
         # Generate and store verification code
         code = generate_verification_code()
-        cache_key = f'password_reset_{email}'
+        cache_key = f'password_reset_code_{email}'
+        print(f"Generated code: {code}")
+        print(f"Storing code in cache with key: {cache_key}")
         cache.set(cache_key, code, timeout=300)  # Code expires in 5 minutes
         
         # Store email in session
@@ -656,59 +661,59 @@ def password_reset_request(request):
     
     return render(request, 'accounts/modals/email_modal_pr.html', get_recaptcha_context())
 
+@require_http_methods(["GET", "POST"])
 def password_reset_verify(request):
-    """Verify the reset code."""
-    if request.method == 'POST':
-        code = request.POST.get('code')
-        website = request.POST.get('website', '')  # Honeypot field
-        
-        # Check honeypot
-        if website:
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Invalid form submission'
-            }, status=400)
-        
+    if request.method == "GET":
         # Get email from session
         email = request.session.get('reset_email')
         if not email:
             return JsonResponse({
                 'status': 'error',
-                'message': 'Session expired. Please try again.'
+                'message': 'Email not found. Please start the password reset process again.'
             }, status=400)
+            
+        return render(request, 'accounts/modals/verify_modal_pr.html', {'email': email})
         
-        # Verify code
-        cache_key = f'password_reset_{email}'
-        stored_code = cache.get(cache_key)
-        
-        if not stored_code or code != stored_code:
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Invalid or expired verification code.'
-            }, status=400)
-        
-        # Generate reset token
-        reset_token = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
-        cache_key = f'reset_token_{email}'
-        cache.set(cache_key, reset_token, timeout=300)  # Token expires in 5 minutes
-        
-        # Render set password form with email and token
-        html = render_to_string('accounts/modals/set_password_pr.html', {
-            'email': email,
-            'token': reset_token
-        }, request)
-        
+    code = request.POST.get('code')
+    email = request.POST.get('email')
+
+    print(f"Verification attempt - Email: {email}, Code: {code}")
+
+    if not code or not email:
         return JsonResponse({
-            'status': 'success',
-            'message': 'Code verified successfully.',
-            'html': html,
-            'email': email,
-            'token': reset_token
-        })
+            'status': 'error',
+            'message': 'Missing required fields'
+        }, status=400)
+
+    # Get the stored code from cache
+    cache_key = f'password_reset_code_{email}'
+    stored_code = cache.get(cache_key)
     
-    # Get email from session for display
-    email = request.session.get('reset_email')
-    return render(request, 'accounts/modals/verify_modal_pr.html', {'email': email})
+    print(f"Cache key: {cache_key}")
+    print(f"Stored code: {stored_code}")
+    print(f"Received code: {code}")
+    print(f"Codes match: {stored_code == code}")
+
+    if not stored_code or stored_code != code:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Invalid or expired verification code'
+        }, status=400)
+
+    # Generate a reset token
+    reset_token = secrets.token_urlsafe(32)
+    # Store the token in cache with a timeout of 5 minutes
+    token_cache_key = f'password_reset_token_{email}'
+    cache.set(token_cache_key, reset_token, timeout=300)
+
+    print(f"Generated reset token for {email}: {reset_token}")
+
+    return JsonResponse({
+        'status': 'success',
+        'message': 'Code verified successfully',
+        'email': email,
+        'token': reset_token
+    })
 
 def password_reset_confirm(request):
     """Set new password."""
@@ -719,6 +724,8 @@ def password_reset_confirm(request):
         password2 = request.POST.get('password2')
         website = request.POST.get('website', '')  # Honeypot field
         
+        print(f"Password reset confirm - Email: {email}, Token: {token}")
+        
         # Check honeypot
         if website:
             return JsonResponse({
@@ -727,8 +734,13 @@ def password_reset_confirm(request):
             }, status=400)
         
         # Verify token
-        cache_key = f'reset_token_{email}'
-        stored_token = cache.get(cache_key)
+        token_cache_key = f'password_reset_token_{email}'
+        stored_token = cache.get(token_cache_key)
+        
+        print(f"Token cache key: {token_cache_key}")
+        print(f"Stored token: {stored_token}")
+        print(f"Received token: {token}")
+        print(f"Tokens match: {stored_token == token}")
         
         if not stored_token or token != stored_token:
             return JsonResponse({
@@ -756,8 +768,8 @@ def password_reset_confirm(request):
             user.save()
             
             # Clear cache
-            cache.delete(cache_key)
-            cache.delete(f'password_reset_{email}')
+            cache.delete(token_cache_key)
+            cache.delete(f'password_reset_code_{email}')
             
             # Send confirmation email
             subject = 'Password Reset Successful'

@@ -1,5 +1,24 @@
 console.log("=== AUTH.JS LOADED ===");
 
+// Global function for toggling password visibility
+window.togglePassword = function (button) {
+    const targetId = button.getAttribute('data-target');
+    const input = document.getElementById(targetId);
+    const icon = button.querySelector('i');
+
+    if (input && icon) {
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+};
+
 // Helper for safe fetch requests with CSRF token
 const csrfFetch = (url, options = {}) => {
     console.log("CSRF Fetch called with URL:", url);
@@ -540,6 +559,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         const verifyHtml = await verifyResponse.text();
                         verifyModal.querySelector('.modal-content').innerHTML = verifyHtml;
 
+                        // Add email to the verification form
+                        const emailInput = verifyModal.querySelector('input[name="email"]');
+                        if (emailInput) {
+                            emailInput.value = formData.get('email');
+                        }
+
                         emailModalInstance.hide();
                         verifyModalInstance.show();
                     }
@@ -586,23 +611,31 @@ document.addEventListener('DOMContentLoaded', function () {
                         const verifyModalInstance = bootstrap.Modal.getInstance(verifyModal);
                         const setPasswordModalInstance = new bootstrap.Modal(setPasswordModal);
 
-                        // Load set password form
-                        const setPasswordResponse = await csrfFetch('/accounts/password-reset/confirm/', {
-                            method: 'GET'
-                        });
+                        // Load set password form first
+                        const setPasswordResponse = await csrfFetch('/accounts/password-reset/confirm/');
                         if (!setPasswordResponse.ok) throw new Error('Failed to load set password form');
                         const setPasswordHtml = await setPasswordResponse.text();
                         setPasswordModal.querySelector('.modal-content').innerHTML = setPasswordHtml;
 
-                        // Add email and token to the form
+                        // Now set the values
                         const emailInput = setPasswordModal.querySelector('input[name="email"]');
                         const tokenInput = setPasswordModal.querySelector('input[name="token"]');
                         const usernameInput = setPasswordModal.querySelector('input[name="username"]');
 
                         if (emailInput && tokenInput && usernameInput) {
+                            console.log('Setting form values:', {
+                                email: data.email,
+                                token: data.token
+                            });
                             emailInput.value = data.email;
                             tokenInput.value = data.token;
                             usernameInput.value = data.email;
+                        } else {
+                            console.error('Form inputs not found:', {
+                                emailInput: !!emailInput,
+                                tokenInput: !!tokenInput,
+                                usernameInput: !!usernameInput
+                            });
                         }
 
                         verifyModalInstance.hide();

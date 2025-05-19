@@ -9,6 +9,8 @@
         <div id="verifyErrorContainer"></div>
         <form method="post" action="{% url 'accounts:password_reset_verify' %}" class="verify-form">
             {% csrf_token %}
+            <input type="hidden" name="email" value="{{ email }}">
+            <input type="hidden" name="username" value="{{ email }}" autocomplete="username">
             {% if error %}
             <div class="alert alert-danger">
                 {{ error }}

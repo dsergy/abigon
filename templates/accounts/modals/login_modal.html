@@ -184,31 +184,10 @@
     }
 </style>
 
+<script src="{% static 'js/password_toggle.js' %}"></script>
+
 <script>
     console.log('Script loaded'); // Проверка загрузки скрипта
-
-    // Add function to window object to make it globally available
-    window.togglePassword = function (button) {
-        console.log('Toggle password clicked');
-        const targetId = button.getAttribute('data-target');
-        console.log('Target ID:', targetId);
-        const input = document.getElementById(targetId);
-        console.log('Input element:', input);
-        const icon = button.querySelector('i');
-        console.log('Icon element:', icon);
-
-        if (input && icon) {
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        }
-    }
 
     document.addEventListener('DOMContentLoaded', function () {
         const loginForm = document.querySelector('.login-form');

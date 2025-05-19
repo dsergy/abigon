@@ -3,7 +3,7 @@
 
 /* Root variables */
 :root {
-  --site-bg: #F7F7F7;
+  --site-bg: #F2F2F0;
   --text-color: #000080;
   /* Changed to navy blue */
   --button-bg: #000080;
@@ -84,11 +84,14 @@ h2 {
 }
 
 .header-panel-1,
-.footer-panel-1,
 .header-panel-2,
 .footer-panel-2 {
-  background-color: #fff;
-  border-color: rgba(0, 0, 128, 0.1);
+  background-color: #F2F2F0;
+}
+
+.footer-panel-1 {
+  background-color: #F2F2F0;
+  border-top: 2px solid rgba(22, 21, 21, 0.08);
 }
 
 /* Links */
@@ -139,7 +142,7 @@ a:hover {
 
 /* Custom shadows */
 .shadow-sm {
-  box-shadow: 0 2px 4px rgba(0, 0, 128, 0.1) !important;
+  box-shadow: 0 2px 4px #F2F2F0 !important;
 }
 
 /* Main content area */

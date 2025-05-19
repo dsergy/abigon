@@ -21,6 +21,11 @@
                 <input type="text" name="code" class="form-control" id="code" required autocomplete="one-time-code"
                     placeholder="Enter 6-digit code">
             </div>
+            <!-- Honeypot field - hidden from real users but visible to bots -->
+            <div style="display:none;">
+                <label for="website">Website</label>
+                <input type="text" name="website" id="website" autocomplete="off">
+            </div>
             <button type="submit" class="btn btn-primary w-100">Verify</button>
         </form>
     </div>

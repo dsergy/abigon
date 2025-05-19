@@ -23,6 +23,17 @@ def login_view(request):
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
+        website = request.POST.get('website', '')  # Get honeypot field
+        
+        # Check honeypot
+        if website:  # If honeypot field is filled, it's a bot
+            print("Honeypot triggered - website field filled")
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Invalid form submission'
+                }, status=400)
+            return render(request, 'accounts/login.html', {'error': 'Invalid form submission'})
         
         if not email or not password:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -81,6 +92,16 @@ def register_email(request):
         print("Starting register_email view")
         email = request.POST.get('email')
         name = request.POST.get('name')
+        website = request.POST.get('website', '')  # Get honeypot field
+        
+        # Check honeypot
+        if website:  # If honeypot field is filled, it's a bot
+            print("Honeypot triggered - website field filled")
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid form submission'
+            }, status=400)
+
         print(f"Received data - email: {email}, name: {name}")
 
         if not all([email, name]):
@@ -153,8 +174,24 @@ def verify_code(request):
     if request.method == 'POST':
         email = request.POST.get('email')
         code = request.POST.get('code')
-        token = request.session.get('registration_token')
+        website = request.POST.get('website', '')  # Get honeypot field
         
+        # Check honeypot
+        if website:  # If honeypot field is filled, it's a bot
+            print("Honeypot triggered - website field filled")
+            context = {
+                'error': 'Invalid form submission',
+                'email': email
+            }
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                html = render_to_string('accounts/modals/verify_code.html', context, request)
+                return JsonResponse({
+                    'status': 'error',
+                    'html': html
+                })
+            return render(request, 'accounts/modals/verify_code.html', context)
+            
+        token = request.session.get('registration_token')
         payload = verify_token(token)
         if not payload or payload['email'] != email or payload['code'] != code:
             context = {
@@ -190,6 +227,24 @@ def complete_registration(request):
         password1 = request.POST.get('password1')
         password2 = request.POST.get('password2')
         token = request.POST.get('token')
+        website = request.POST.get('website', '')  # Get honeypot field
+        
+        # Check honeypot
+        if website:  # If honeypot field is filled, it's a bot
+            print("Honeypot triggered - website field filled")
+            context = {
+                'error': 'Invalid form submission',
+                'email': email,
+                'token': token
+            }
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                html = render_to_string('accounts/modals/set_password.html', context, request)
+                return JsonResponse({
+                    'status': 'error',
+                    'html': html
+                })
+            return render(request, 'accounts/modals/set_password.html', context)
+            
         name = request.session.get('registration_name')
         
         if password1 != password2:

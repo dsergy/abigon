@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'django_htmx',
+    'honeypot',  # Add honeypot
     
     # Local apps
     'ads.apps.AdsConfig',
@@ -77,12 +78,13 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'honeypot.middleware.HoneypotViewMiddleware',  # Honeypot middleware before CSRF
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django_htmx.middleware.HtmxMiddleware',  # HTMX Middleware
-    'allauth.account.middleware.AccountMiddleware',  # Allauth Middleware
+    'django_htmx.middleware.HtmxMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'classifieds.urls'
@@ -259,3 +261,12 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+
+# Honeypot settings
+HONEYPOT_FIELD_NAME = 'website'
+HONEYPOT_VALUE = ''  # Empty string means any non-empty value is spam
+HONEYPOT_VERIFIER = 'honeypot.middleware.HoneypotViewMiddleware'
+HONEYPOT_RESPONSE = 'Invalid form submission'  # Custom error message
+HONEYPOT_LOG_ATTEMPTS = True  # Log spam attempts
+HONEYPOT_EMAIL_FIELD_NAME = 'email'  # Add this to check email field
+HONEYPOT_EMAIL_VERIFIER = 'honeypot.middleware.HoneypotViewMiddleware'  # Add this to verify email

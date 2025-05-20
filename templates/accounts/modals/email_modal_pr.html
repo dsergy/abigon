@@ -7,7 +7,7 @@
     </div>
     <div class="modal-body">
         <div id="resetErrorContainer"></div>
-        <form method="post" action="{% url 'accounts:password_reset_request' %}" class="password-reset-form">
+        <form method="post" action="{% url 'accounts:password_reset' %}" class="password-reset-form">
             {% csrf_token %}
             <div class="mb-3">
                 <label for="email" class="form-label">Email address</label>

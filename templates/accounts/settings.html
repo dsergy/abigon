@@ -471,19 +471,26 @@
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     Warning: This action cannot be undone. All your data will be permanently deleted.
                 </div>
-                <form id="deleteAccountForm">
-                    {% csrf_token %}
+                <form id="deleteAccountForm" class="needs-validation" novalidate autocomplete="off">
                     <div class="mb-3">
-                        <label for="confirmEmail" class="form-label">Please enter your email to confirm account
-                            deletion</label>
-                        <input type="email" class="form-control" id="confirmEmail" required
-                            placeholder="Enter your email address">
+                        <label for="deletePassword" class="form-label">Enter your password to confirm</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="deletePassword" name="password" required
+                                autocomplete="off">
+                            <button class="btn btn-outline-secondary toggle-password" type="button"
+                                data-target="deletePassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback">
+                            Please enter your password to confirm account deletion.
+                        </div>
                     </div>
+                    <button type="submit" class="btn btn-danger">Delete Account</button>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteAccount">Delete Account</button>
             </div>
         </div>
     </div>
@@ -769,43 +776,49 @@
 
         // Delete Account functionality
         const deleteAccountBtn = document.querySelector('.btn-danger');
-        const confirmDeleteBtn = document.getElementById('confirmDeleteAccount');
         const deleteAccountModal = new bootstrap.Modal(document.getElementById('deleteAccountModal'));
-        const confirmEmailInput = document.getElementById('confirmEmail');
+        const deleteAccountForm = document.getElementById('deleteAccountForm');
 
         deleteAccountBtn.addEventListener('click', function () {
-            confirmEmailInput.value = ''; // Очищаем поле email
             deleteAccountModal.show();
         });
 
-        confirmDeleteBtn.addEventListener('click', async function () {
-            const email = confirmEmailInput.value.trim();
+        deleteAccountForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
 
-            if (email !== '{{ user.email }}') {
-                alert('Email does not match your account email');
+            if (!this.checkValidity()) {
+                e.stopPropagation();
+                this.classList.add('was-validated');
                 return;
             }
 
             try {
+                const formData = new FormData(this);
                 const response = await fetch('/accounts/profile/settings/delete-account/', {
                     method: 'POST',
+                    body: formData,
                     headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrfToken
-                    },
-                    body: JSON.stringify({ email })
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
                 });
 
                 const data = await response.json();
+
                 if (data.status === 'success') {
-                    window.location.href = '/'; // Redirect to home page after successful deletion
+                    window.location.href = '/';
                 } else {
-                    alert(data.message || 'Failed to delete account');
+                    alert(data.message || 'Failed to delete account. Please try again.');
                 }
             } catch (error) {
-                alert('Error deleting account');
+                console.error('Error details:', error);
+                alert('An error occurred while trying to delete your account. Please try again.');
             }
         });
     });
 </script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/settings.js' %}"></script>
 {% endblock %}

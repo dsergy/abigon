@@ -1,23 +1,34 @@
 from django.urls import path
 from . import views
+from .auth_views import (
+    login_view, logout_view, register_email, verify_code,
+    complete_registration, password_reset_request,
+    password_reset_verify, password_reset_confirm,
+    register_modal
+)
 
 app_name = 'accounts'
 
 urlpatterns = [
-    path('login/', views.login_view, name='login'),
+    # Authentication URLs
+    path('login/', login_view, name='login'),
     path('login/modal/', views.login_modal, name='login_modal'),
-    path('logout/', views.logout_view, name='logout'),
-    path('register/modal/', views.register_modal, name='register_modal'),
-    path('register/email/', views.register_email, name='register_email'),
-    path('register/verify/', views.verify_code, name='verify_code'),
-    path('register/complete/', views.complete_registration, name='complete_registration'),
-    path('password-reset/', views.password_reset_request, name='password_reset_request'),
-    path('password-reset/verify/', views.password_reset_verify, name='password_reset_verify'),
-    path('password-reset/confirm/', views.password_reset_confirm, name='password_reset_confirm'),
+    path('logout/', logout_view, name='logout'),
+    
+    # Registration URLs
+    path('register/', register_modal, name='register'),
+    path('register/email/', register_email, name='register_email'),
+    path('verify/code/', verify_code, name='verify_code'),
+    path('complete-registration/', complete_registration, name='complete_registration'),
+    
+    # Password Reset URLs
+    path('password-reset/', password_reset_request, name='password_reset'),
+    path('password-reset/verify/', password_reset_verify, name='password_reset_verify'),
+    path('password-reset/confirm/', password_reset_confirm, name='password_reset_confirm'),
     
     # Profile URLs
     path('profile/', views.profile_view, name='profile'),
-    path('profile/settings/', views.settings_view, name='settings'),
+    path('settings/', views.settings_view, name='settings'),
     path('profile/<str:section>/', views.profile_section, name='profile_section'),
     
     # Profile Settings Update URLs
@@ -26,7 +37,7 @@ urlpatterns = [
     path('profile/settings/update/gender/', views.update_gender, name='update_gender'),
     path('profile/settings/update/avatar/', views.update_avatar, name='update_avatar'),
     path('profile/settings/update/phone/', views.update_phone, name='update_phone'),
-    path('profile/settings/update/phone/verify/', views.verify_phone, name='verify_phone'),
+    path('profile/settings/verify/phone/', views.verify_phone, name='verify_phone'),
     path('profile/settings/update/zipcode/', views.update_zipcode, name='update_zipcode'),
     path('profile/settings/delete-account/', views.delete_account, name='delete_account'),
 ] 

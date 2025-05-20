@@ -1,5 +1,24 @@
 console.log("=== AUTH.JS LOADED ===");
 
+// Global function for toggling password visibility
+window.togglePassword = function (button) {
+    const targetId = button.getAttribute('data-target');
+    const input = document.getElementById(targetId);
+    const icon = button.querySelector('i');
+
+    if (input && icon) {
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+};
+
 // Helper for safe fetch requests with CSRF token
 const csrfFetch = (url, options = {}) => {
     console.log("CSRF Fetch called with URL:", url);
@@ -16,7 +35,8 @@ const csrfFetch = (url, options = {}) => {
         method: 'GET',
         headers: {
             'X-CSRFToken': csrfToken,
-            'X-Requested-With': 'XMLHttpRequest'
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
         },
         credentials: 'same-origin'
     };
@@ -252,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function () {
     registerModal.addEventListener('show.bs.modal', async function () {
         try {
             console.log('Loading registration form...');
-            const response = await csrfFetch('/accounts/register/modal/');
+            const response = await csrfFetch('/accounts/register/');
             if (!response.ok) throw new Error('Failed to load registration form');
             const html = await response.text();
             registerModal.querySelector('.modal-content').innerHTML = html;
@@ -404,6 +424,37 @@ document.addEventListener('DOMContentLoaded', function () {
                             }
                         }
                     }
+
+                    // Handle successful registration completion
+                    if (form.classList.contains('set-password-form') && data.status === 'success') {
+                        // Find all modals that might be open
+                        const modals = ['registerModal', 'verifyModal', 'setPasswordModal'];
+                        modals.forEach(modalId => {
+                            const modalElement = document.getElementById(modalId);
+                            if (modalElement) {
+                                const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                                if (modalInstance) {
+                                    modalInstance.hide();
+                                }
+                            }
+                        });
+
+                        // Show success message
+                        const successAlert = document.createElement('div');
+                        successAlert.className = 'alert alert-success';
+                        successAlert.innerHTML = 'Registration completed successfully! You can now login with your new account.';
+                        document.querySelector('.main-content .container').prepend(successAlert);
+
+                        // Remove success message after 5 seconds
+                        setTimeout(() => {
+                            successAlert.remove();
+                        }, 5000);
+
+                        // Redirect to home page after a short delay
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 1000);
+                    }
                 } catch (e) {
                     console.error('Failed to parse JSON:', e);
                     console.log('Raw response was:', text);
@@ -461,21 +512,47 @@ document.addEventListener('DOMContentLoaded', function () {
             try {
                 console.log('Loading password reset form...');
                 const response = await csrfFetch('/accounts/password-reset/');
-                if (!response.ok) throw new Error('Failed to load password reset form');
-                const html = await response.text();
-                emailModal.querySelector('.modal-content').innerHTML = html;
+                console.log('Response status:', response.status);
 
-                // Add event listener for close button after content is loaded
-                const closeButton = emailModal.querySelector('.btn-close');
-                if (closeButton) {
-                    closeButton.addEventListener('click', function () {
-                        if (emailModalInstance) {
-                            emailModalInstance.hide();
-                        }
-                    });
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.message || 'Failed to load password reset form');
+                }
+
+                const data = await response.json();
+                console.log('Response data:', data);
+
+                if (data.status === 'success' && data.html) {
+                    emailModal.querySelector('.modal-content').innerHTML = data.html;
+
+                    // Add event listener for close button after content is loaded
+                    const closeButton = emailModal.querySelector('.btn-close');
+                    if (closeButton) {
+                        closeButton.addEventListener('click', function () {
+                            if (emailModalInstance) {
+                                emailModalInstance.hide();
+                            }
+                        });
+                    }
+                } else {
+                    throw new Error(data.message || 'Failed to load password reset form');
                 }
             } catch (error) {
                 console.error('Error loading password reset form:', error);
+                const errorContainer = emailModal.querySelector('.modal-content');
+                if (errorContainer) {
+                    errorContainer.innerHTML = `
+                        <div class="modal-header">
+                            <h5 class="modal-title">Error</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-danger">
+                                ${error.message || 'Failed to load password reset form. Please try again.'}
+                            </div>
+                        </div>
+                    `;
+                }
             }
         });
 
@@ -540,6 +617,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         const verifyHtml = await verifyResponse.text();
                         verifyModal.querySelector('.modal-content').innerHTML = verifyHtml;
 
+                        // Add email to the verification form
+                        const emailInput = verifyModal.querySelector('input[name="email"]');
+                        if (emailInput) {
+                            emailInput.value = formData.get('email');
+                        }
+
                         emailModalInstance.hide();
                         verifyModalInstance.show();
                     }
@@ -576,6 +659,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
                 const data = await response.json();
+                console.log('Verification response:', data);
 
                 if (data.status === 'success') {
                     // Show set password modal
@@ -586,27 +670,45 @@ document.addEventListener('DOMContentLoaded', function () {
                         const verifyModalInstance = bootstrap.Modal.getInstance(verifyModal);
                         const setPasswordModalInstance = new bootstrap.Modal(setPasswordModal);
 
-                        // Load set password form
-                        const setPasswordResponse = await csrfFetch('/accounts/password-reset/confirm/', {
-                            method: 'GET'
-                        });
+                        // Load set password form first
+                        const setPasswordResponse = await csrfFetch('/accounts/password-reset/confirm/');
                         if (!setPasswordResponse.ok) throw new Error('Failed to load set password form');
-                        const setPasswordHtml = await setPasswordResponse.text();
-                        setPasswordModal.querySelector('.modal-content').innerHTML = setPasswordHtml;
+                        const setPasswordData = await setPasswordResponse.json();
+                        console.log('Set password response:', setPasswordData);
 
-                        // Add email and token to the form
-                        const emailInput = setPasswordModal.querySelector('input[name="email"]');
-                        const tokenInput = setPasswordModal.querySelector('input[name="token"]');
-                        const usernameInput = setPasswordModal.querySelector('input[name="username"]');
+                        if (setPasswordData.status === 'success' && setPasswordData.html) {
+                            setPasswordModal.querySelector('.modal-content').innerHTML = setPasswordData.html;
 
-                        if (emailInput && tokenInput && usernameInput) {
-                            emailInput.value = data.email;
-                            tokenInput.value = data.token;
-                            usernameInput.value = data.email;
+                            // Wait for the DOM to update
+                            await new Promise(resolve => setTimeout(resolve, 100));
+
+                            // Now set the values
+                            const emailInput = setPasswordModal.querySelector('input[name="email"]');
+                            const tokenInput = setPasswordModal.querySelector('input[name="token"]');
+                            const usernameInput = setPasswordModal.querySelector('input[name="username"]');
+
+                            if (emailInput && tokenInput && usernameInput) {
+                                console.log('Setting form values:', {
+                                    email: data.email,
+                                    token: data.token
+                                });
+                                emailInput.value = data.email;
+                                tokenInput.value = data.token;
+                                usernameInput.value = data.email;
+                            } else {
+                                console.error('Form inputs not found:', {
+                                    emailInput: !!emailInput,
+                                    tokenInput: !!tokenInput,
+                                    usernameInput: !!usernameInput
+                                });
+                                throw new Error('Failed to initialize password reset form');
+                            }
+
+                            verifyModalInstance.hide();
+                            setPasswordModalInstance.show();
+                        } else {
+                            throw new Error(setPasswordData.message || 'Failed to load password reset form');
                         }
-
-                        verifyModalInstance.hide();
-                        setPasswordModalInstance.show();
                     }
                 } else {
                     const errorContainer = form.querySelector('#verifyErrorContainer');
@@ -618,7 +720,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Error in verification:', error);
                 const errorContainer = form.querySelector('#verifyErrorContainer');
                 if (errorContainer) {
-                    errorContainer.innerHTML = '<div class="alert alert-danger">An error occurred. Please try again.</div>';
+                    errorContainer.innerHTML = `<div class="alert alert-danger">${error.message || 'An error occurred. Please try again.'}</div>`;
                 }
             } finally {
                 submitButton.disabled = false;
@@ -667,13 +769,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Show success message
                     const successAlert = document.createElement('div');
                     successAlert.className = 'alert alert-success';
-                    successAlert.innerHTML = 'Your password has been reset successfully. You can now login with your new password.';
+                    successAlert.innerHTML = data.message || 'Your password has been reset successfully. You can now login with your new password.';
                     document.querySelector('.main-content .container').prepend(successAlert);
 
                     // Remove success message after 5 seconds
                     setTimeout(() => {
                         successAlert.remove();
                     }, 5000);
+
+                    // Redirect to login page after a short delay
+                    setTimeout(() => {
+                        window.location.href = '/accounts/login/';
+                    }, 1000);
                 } else {
                     const errorContainer = form.querySelector('#passwordErrorContainer');
                     if (errorContainer) {
@@ -702,3 +809,24 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
+function handlePasswordResetResponse(response) {
+    if (response.status === 'success') {
+        // Show success message
+        showMessage(response.message, 'success');
+
+        // If there's a redirect URL, navigate to it
+        if (response.redirect) {
+            window.location.href = response.redirect;
+        } else {
+            // Otherwise close the modal and reload the page
+            const modal = bootstrap.Modal.getInstance(document.getElementById('emailModal'));
+            if (modal) {
+                modal.hide();
+            }
+            window.location.reload();
+        }
+    } else {
+        showMessage(response.message, 'error');
+    }
+}

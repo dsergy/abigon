@@ -1,23 +1,21 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.core.mail import send_mail
-from django.contrib.auth import get_user_model, login, logout, authenticate
+from django.contrib.auth import get_user_model, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import AuthenticationForm
 from django.conf import settings
 from django.core.validators import RegexValidator
-import jwt
-import random
-from datetime import datetime, timedelta
 from django.views.decorators.http import require_POST, require_http_methods
 from django.core.files.storage import default_storage
 import json
 import re
-import string
 from django.template.loader import render_to_string
-import requests
-from django.core.cache import cache
-import secrets
+
+from .auth_views import (
+    login_view, logout_view, register_email, verify_code,
+    complete_registration, password_reset_request,
+    password_reset_verify, password_reset_confirm
+)
 
 User = get_user_model()
 
@@ -37,330 +35,6 @@ def verify_recaptcha(token):
     r = requests.post(url, data=data)
     result = r.json()
     return result.get('success', False) and result.get('score', 0) >= settings.RECAPTCHA_SCORE_THRESHOLD
-
-def login_view(request):
-    """Handle login form display and submission."""
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        website = request.POST.get('website', '')  # Get honeypot field
-        recaptcha_token = request.POST.get('g-recaptcha-response')
-        
-        # Check honeypot
-        if website:  # If honeypot field is filled, it's a bot
-            print("Honeypot triggered - website field filled")
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'status': 'error',
-                    'message': 'Invalid form submission'
-                }, status=400)
-            return render(request, 'accounts/modals/login_modal.html', {
-                'error': 'Invalid form submission',
-                **get_recaptcha_context()
-            })
-        
-        # Verify reCAPTCHA
-        if not recaptcha_token or not verify_recaptcha(recaptcha_token):
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'status': 'error',
-                    'message': 'Invalid reCAPTCHA. Please try again.'
-                }, status=400)
-            return render(request, 'accounts/modals/login_modal.html', {
-                'error': 'Invalid reCAPTCHA. Please try again.',
-                **get_recaptcha_context()
-            })
-        
-        if not email or not password:
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'status': 'error',
-                    'message': 'Email and password are required'
-                }, status=400)
-            return render(request, 'accounts/login.html', {'error': 'Email and password are required'})
-        
-        user = authenticate(username=email, password=password)
-        if user is not None:
-            login(request, user)
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'status': 'success',
-                    'redirect': '/'
-                })
-            return redirect('home')
-        
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Invalid email or password'
-            }, status=400)
-        return render(request, 'accounts/login.html', {'error': 'Invalid email or password'})
-    
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return render(request, 'accounts/modals/login_modal.html', get_recaptcha_context())
-    return render(request, 'accounts/login.html', get_recaptcha_context())
-
-def generate_verification_code():
-    """Generate a 6-digit verification code."""
-    return ''.join(random.choices(string.digits, k=6))
-
-def generate_token(email, code):
-    payload = {
-        'email': email,
-        'code': code,
-        'exp': datetime.utcnow() + timedelta(minutes=30)
-    }
-    return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
-
-def verify_token(token):
-    try:
-        return jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-    except:
-        return None
-
-def register_modal(request):
-    """Display registration modal."""
-    return render(request, 'accounts/modals/register_modal.html')
-
-@require_POST
-def register_email(request):
-    """Handle email registration."""
-    try:
-        print("Starting register_email view")
-        email = request.POST.get('email')
-        name = request.POST.get('name')
-        website = request.POST.get('website', '')  # Get honeypot field
-        recaptcha_token = request.POST.get('g-recaptcha-response')
-        
-        # Check honeypot
-        if website:  # If honeypot field is filled, it's a bot
-            print("Honeypot triggered - website field filled")
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'status': 'error',
-                    'message': 'Invalid form submission'
-                }, status=400)
-            return render(request, 'accounts/modals/register_modal.html', {
-                'error': 'Invalid form submission',
-                **get_recaptcha_context()
-            })
-
-        # Verify reCAPTCHA
-        if not recaptcha_token or not verify_recaptcha(recaptcha_token):
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'status': 'error',
-                    'message': 'Invalid reCAPTCHA. Please try again.'
-                }, status=400)
-            return render(request, 'accounts/modals/register_modal.html', {
-                'error': 'Invalid reCAPTCHA. Please try again.',
-                **get_recaptcha_context()
-            })
-
-        print(f"Received data - email: {email}, name: {name}")
-
-        if not all([email, name]):
-            print("Missing required fields")
-            return JsonResponse({
-                'status': 'error',
-                'message': 'All fields are required'
-            }, status=400)
-
-        if User.objects.filter(email=email).exists():
-            print("Email already exists")
-            return JsonResponse({
-                'status': 'error',
-                'message': 'This email is already registered'
-            }, status=400)
-
-        # Generate verification code
-        verification_code = generate_verification_code()
-        print(f"Generated verification code: {verification_code}")
-        
-        # Generate token
-        token = generate_token(email, verification_code)
-        print(f"Generated token: {token}")
-        
-        # Store in session
-        request.session['registration_token'] = token
-        request.session['registration_name'] = name
-        print("Token and name stored in session")
-        
-        # Send verification email
-        try:
-            print("Attempting to send email...")
-            send_mail(
-                'Email Verification',
-                f'Your verification code: {verification_code}',
-                settings.DEFAULT_FROM_EMAIL,
-                [email],
-                fail_silently=False,
-            )
-            print("Email sent successfully")
-        except Exception as e:
-            print(f"Email error: {str(e)}")
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Failed to send verification email. Please try again.'
-            }, status=500)
-        
-        context = {
-            'email': email
-        }
-        print("Rendering verify_code template")
-        
-        # Always return JSON for AJAX requests
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            html = render_to_string('accounts/modals/verify_code.html', context, request)
-            return JsonResponse({
-                'status': 'success',
-                'html': html
-            })
-        return render(request, 'accounts/modals/verify_code.html', context)
-    except Exception as e:
-        print(f"General error: {str(e)}")
-        return JsonResponse({
-            'status': 'error',
-            'message': str(e)
-        }, status=500)
-
-def verify_code(request):
-    """Handle verification code step."""
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        code = request.POST.get('code')
-        website = request.POST.get('website', '')  # Get honeypot field
-        
-        # Check honeypot
-        if website:  # If honeypot field is filled, it's a bot
-            print("Honeypot triggered - website field filled")
-            context = {
-                'error': 'Invalid form submission',
-                'email': email
-            }
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                html = render_to_string('accounts/modals/verify_code.html', context, request)
-                return JsonResponse({
-                    'status': 'error',
-                    'html': html
-                })
-            return render(request, 'accounts/modals/verify_code.html', context)
-            
-        token = request.session.get('registration_token')
-        payload = verify_token(token)
-        if not payload or payload['email'] != email or payload['code'] != code:
-            context = {
-                'error': 'Invalid code',
-                'email': email
-            }
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                html = render_to_string('accounts/modals/verify_code.html', context, request)
-                return JsonResponse({
-                    'status': 'error',
-                    'html': html
-                })
-            return render(request, 'accounts/modals/verify_code.html', context)
-        
-        context = {
-            'email': email,
-            'token': token
-        }
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            html = render_to_string('accounts/modals/set_password.html', context, request)
-            return JsonResponse({
-                'status': 'success',
-                'html': html
-            })
-        return render(request, 'accounts/modals/set_password.html', context)
-    
-    return HttpResponse('Invalid request', status=400)
-
-def complete_registration(request):
-    """Complete registration process."""
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        password1 = request.POST.get('password1')
-        password2 = request.POST.get('password2')
-        token = request.POST.get('token')
-        website = request.POST.get('website', '')  # Get honeypot field
-        
-        # Check honeypot
-        if website:  # If honeypot field is filled, it's a bot
-            print("Honeypot triggered - website field filled")
-            context = {
-                'error': 'Invalid form submission',
-                'email': email,
-                'token': token
-            }
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                html = render_to_string('accounts/modals/set_password.html', context, request)
-                return JsonResponse({
-                    'status': 'error',
-                    'html': html
-                })
-            return render(request, 'accounts/modals/set_password.html', context)
-            
-        name = request.session.get('registration_name')
-        
-        if password1 != password2:
-            context = {
-                'error': 'Passwords do not match',
-                'email': email,
-                'token': token
-            }
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                html = render_to_string('accounts/modals/set_password.html', context, request)
-                return JsonResponse({
-                    'status': 'error',
-                    'html': html
-                })
-            return render(request, 'accounts/modals/set_password.html', context)
-            
-        payload = verify_token(token)
-        if not payload or payload['email'] != email:
-            context = {
-                'error': 'Invalid token',
-                'email': email,
-                'token': token
-            }
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                html = render_to_string('accounts/modals/set_password.html', context, request)
-                return JsonResponse({
-                    'status': 'error',
-                    'html': html
-                })
-            return render(request, 'accounts/modals/set_password.html', context)
-            
-        try:
-            user = User.objects.create_user(
-                username=email,
-                email=email,
-                password=password1,
-                name=name
-            )
-            user.backend = 'django.contrib.auth.backends.ModelBackend'
-            login(request, user)
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'status': 'success',
-                    'redirect': '/'
-                })
-            return redirect('home')
-        except Exception as e:
-            context = {
-                'error': str(e),
-                'email': email,
-                'token': token
-            }
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                html = render_to_string('accounts/modals/set_password.html', context, request)
-                return JsonResponse({
-                    'status': 'error',
-                    'html': html
-                })
-            return render(request, 'accounts/modals/set_password.html', context)
-    
-    return HttpResponse('Invalid request', status=400)
 
 @login_required
 def profile_view(request):
@@ -387,10 +61,6 @@ def profile_section(request, section):
     return render(request, template_name, {
         'active_tab': section
     })
-
-def logout_view(request):
-    logout(request)
-    return redirect('home')
 
 @login_required
 @require_POST
@@ -483,6 +153,7 @@ def update_phone(request):
         
         # Generate and send verification code if phone changed
         if not request.user.phone_verified:
+            from .utils import generate_verification_code, generate_token
             code = generate_verification_code()
             token = generate_token(request.user.email, code)
             request.session['phone_verification_token'] = token
@@ -513,6 +184,7 @@ def verify_phone(request):
         code = data.get('code')
         token = request.session.get('phone_verification_token')
         
+        from .utils import verify_token
         payload = verify_token(token)
         if not payload or payload['code'] != code:
             raise ValueError("Invalid verification code")
@@ -530,262 +202,87 @@ def verify_phone(request):
 @login_required
 @require_POST
 def update_zipcode(request):
-    """Update user's ZIP code."""
+    """Update user's zipcode."""
     try:
         data = json.loads(request.body)
-        zip_code = data.get('zip_code', '').strip()
+        zipcode = data.get('zipcode', '').strip()
         
-        # Validate ZIP code format
-        if not re.match(r'^\d{5}(?:-\d{4})?$', zip_code):
-            raise ValueError("ZIP code must be in format '12345' or '12345-6789'")
-            
-        request.user.zip_code = zip_code
+        # Validate zipcode format
+        zipcode_regex = RegexValidator(
+            regex=r'^\d{5}$',
+            message="Zipcode must be 5 digits"
+        )
+        zipcode_regex(zipcode)
+        
+        request.user.zipcode = zipcode
         request.user.save()
         
         return JsonResponse({
             'status': 'success',
-            'zip_code': zip_code
+            'zipcode': zipcode
         })
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@require_POST
 @login_required
 def delete_account(request):
     """Handle account deletion."""
-    try:
-        data = json.loads(request.body)
-        email = data.get('email')
-
-        if email != request.user.email:
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Email does not match your account email'
-            }, status=400)
-
-        # Send confirmation email
-        send_mail(
-            'Account Deletion Confirmation',
-            f'Your account with email {email} has been successfully deleted.',
-            settings.DEFAULT_FROM_EMAIL,
-            [email],
-            fail_silently=False,
-        )
-
-        # Delete user
-        user = request.user
-        user.delete()
-
-        # Logout user
-        logout(request)
-
-        return JsonResponse({
-            'status': 'success',
-            'message': 'Account successfully deleted'
-        })
-    except Exception as e:
-        return JsonResponse({
-            'status': 'error',
-            'message': str(e)
-        }, status=500)
-
-@require_http_methods(['GET'])
-def login_modal(request):
-    """Render login form modal."""
-    print("=== LOGIN MODAL VIEW CALLED ===")
-    print("Request method:", request.method)
-    print("Request headers:", request.headers)
-    print("Request path:", request.path)
-    response = render(request, 'accounts/modals/login_modal.html')
-    print("Response status:", response.status_code)
-    print("Response content:", response.content)
-    return response
-
-def send_verification_email(email, code):
-    """Send verification code to user's email."""
-    subject = 'Password Reset Verification Code'
-    message = f'Your verification code is: {code}\n\nIf you did not request this password reset, please contact support immediately.'
-    from_email = settings.DEFAULT_FROM_EMAIL
-    recipient_list = [email]
-    send_mail(subject, message, from_email, recipient_list)
-
-def password_reset_request(request):
-    """Handle password reset request."""
     if request.method == 'POST':
-        email = request.POST.get('email')
-        website = request.POST.get('website', '')  # Honeypot field
-        recaptcha_token = request.POST.get('g-recaptcha-response')
+        password = request.POST.get('password')
         
-        print(f"Password reset request for email: {email}")
-        
-        # Check honeypot
-        if website:
+        if not password:
             return JsonResponse({
                 'status': 'error',
-                'message': 'Invalid form submission'
+                'message': 'Password is required to delete your account.'
             }, status=400)
         
-        # Verify reCAPTCHA
-        if not recaptcha_token or not verify_recaptcha(recaptcha_token):
+        # Verify password
+        if not request.user.check_password(password):
             return JsonResponse({
                 'status': 'error',
-                'message': 'Invalid reCAPTCHA. Please try again.'
+                'message': 'Invalid password. Please try again.'
             }, status=400)
         
-        # Check if user exists
         try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
-            return JsonResponse({
-                'status': 'error',
-                'message': 'No user found with this email address.'
-            }, status=400)
-        
-        # Generate and store verification code
-        code = generate_verification_code()
-        cache_key = f'password_reset_code_{email}'
-        print(f"Generated code: {code}")
-        print(f"Storing code in cache with key: {cache_key}")
-        cache.set(cache_key, code, timeout=300)  # Code expires in 5 minutes
-        
-        # Store email in session
-        request.session['reset_email'] = email
-        
-        # Send verification email
-        send_verification_email(email, code)
-        
-        return JsonResponse({
-            'status': 'success',
-            'message': 'Verification code sent to your email.'
-        })
-    
-    return render(request, 'accounts/modals/email_modal_pr.html', get_recaptcha_context())
-
-@require_http_methods(["GET", "POST"])
-def password_reset_verify(request):
-    if request.method == "GET":
-        # Get email from session
-        email = request.session.get('reset_email')
-        if not email:
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Email not found. Please start the password reset process again.'
-            }, status=400)
+            # Delete user's avatar if exists
+            if request.user.avatar:
+                default_storage.delete(request.user.avatar.path)
             
-        return render(request, 'accounts/modals/verify_modal_pr.html', {'email': email})
-        
-    code = request.POST.get('code')
-    email = request.POST.get('email')
-
-    print(f"Verification attempt - Email: {email}, Code: {code}")
-
-    if not code or not email:
-        return JsonResponse({
-            'status': 'error',
-            'message': 'Missing required fields'
-        }, status=400)
-
-    # Get the stored code from cache
-    cache_key = f'password_reset_code_{email}'
-    stored_code = cache.get(cache_key)
-    
-    print(f"Cache key: {cache_key}")
-    print(f"Stored code: {stored_code}")
-    print(f"Received code: {code}")
-    print(f"Codes match: {stored_code == code}")
-
-    if not stored_code or stored_code != code:
-        return JsonResponse({
-            'status': 'error',
-            'message': 'Invalid or expired verification code'
-        }, status=400)
-
-    # Generate a reset token
-    reset_token = secrets.token_urlsafe(32)
-    # Store the token in cache with a timeout of 5 minutes
-    token_cache_key = f'password_reset_token_{email}'
-    cache.set(token_cache_key, reset_token, timeout=300)
-
-    print(f"Generated reset token for {email}: {reset_token}")
-
-    return JsonResponse({
-        'status': 'success',
-        'message': 'Code verified successfully',
-        'email': email,
-        'token': reset_token
-    })
-
-def password_reset_confirm(request):
-    """Set new password."""
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        token = request.POST.get('token')
-        password1 = request.POST.get('password1')
-        password2 = request.POST.get('password2')
-        website = request.POST.get('website', '')  # Honeypot field
-        
-        print(f"Password reset confirm - Email: {email}, Token: {token}")
-        
-        # Check honeypot
-        if website:
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Invalid form submission'
-            }, status=400)
-        
-        # Verify token
-        token_cache_key = f'password_reset_token_{email}'
-        stored_token = cache.get(token_cache_key)
-        
-        print(f"Token cache key: {token_cache_key}")
-        print(f"Stored token: {stored_token}")
-        print(f"Received token: {token}")
-        print(f"Tokens match: {stored_token == token}")
-        
-        if not stored_token or token != stored_token:
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Invalid or expired reset token.'
-            }, status=400)
-        
-        # Validate passwords
-        if password1 != password2:
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Passwords do not match.'
-            }, status=400)
-        
-        if len(password1) < 8:
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Password must be at least 8 characters long.'
-            }, status=400)
-        
-        # Update password
-        try:
-            user = User.objects.get(email=email)
-            user.set_password(password1)
-            user.save()
+            # Delete user's media files
+            user_media_path = f'user_{request.user.id}'
+            if default_storage.exists(user_media_path):
+                default_storage.delete(user_media_path)
             
-            # Clear cache
-            cache.delete(token_cache_key)
-            cache.delete(f'password_reset_code_{email}')
+            # Delete user's session data
+            request.session.flush()
             
-            # Send confirmation email
-            subject = 'Password Reset Successful'
-            message = 'Your password has been successfully reset. If you did not make this change, please contact support immediately.'
-            from_email = settings.DEFAULT_FROM_EMAIL
-            recipient_list = [email]
-            send_mail(subject, message, from_email, recipient_list)
+            # Delete user's cache data
+            from django.core.cache import cache
+            cache.delete(f'user_{request.user.id}_data')
+            
+            # Delete user
+            user = request.user
+            user.delete()
+            
+            # Logout user
+            logout(request)
             
             return JsonResponse({
                 'status': 'success',
-                'message': 'Password reset successful.'
+                'message': 'Your account has been successfully deleted.'
             })
-        except User.DoesNotExist:
+        except Exception as e:
             return JsonResponse({
                 'status': 'error',
-                'message': 'User not found.'
-            }, status=400)
+                'message': 'Failed to delete account. Please try again.'
+            }, status=500)
     
-    return render(request, 'accounts/modals/set_password_pr.html')
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Invalid request method.'
+    }, status=405)
+
+@require_http_methods(['GET'])
+def login_modal(request):
+    """Display login modal."""
+    return render(request, 'accounts/modals/login_modal.html', get_recaptcha_context())

@@ -81,6 +81,8 @@
     }
 </style>
 
+<script src="{% static 'js/password_toggle.js' %}"></script>
+
 <script>
     function onRecaptchaSuccess(token) {
         document.getElementById('recaptchaResponse').value = token;

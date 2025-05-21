@@ -115,7 +115,13 @@
                             <div>
                                 <label class="form-label">Gender</label>
                                 <div class="setting-value" id="genderDisplay">
-                                    {{ user.gender|default:"Not specified" }}
+                                    {% if user.gender == 'male' %}
+                                    Male
+                                    {% elif user.gender == 'female' %}
+                                    Female
+                                    {% else %}
+                                    Not specified
+                                    {% endif %}
                                 </div>
                                 <div class="edit-form d-none">
                                     <select class="form-select" id="genderSelect">
@@ -158,7 +164,7 @@
                                 <label class="form-label">Password</label>
                                 <div class="setting-value">••••••••</div>
                             </div>
-                            <button class="btn btn-link edit-btn">
+                            <button class="btn btn-link edit-btn" data-edit="password">
                                 <i class="fas fa-pen"></i>
                             </button>
                         </div>
@@ -436,6 +442,8 @@
     }
 
     .form-select {
+        width: 200px;
+        max-width: 220px;
         padding: 0.5rem;
         border-radius: var(--button-radius);
         border: 1px solid rgba(12, 26, 50, 0.1);
@@ -496,6 +504,66 @@
     </div>
 </div>
 
+<!-- Password Change Modal -->
+<div class="modal fade" id="email_modal_pr" tabindex="-1" aria-labelledby="emailModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="emailModalLabel">Change Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="passwordChangeForm" class="needs-validation" novalidate>
+                    <div class="mb-3">
+                        <label for="currentPassword" class="form-label">Current Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="currentPassword" name="current_password"
+                                required>
+                            <button class="btn btn-outline-secondary toggle-password" type="button"
+                                data-target="currentPassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback">
+                            Please enter your current password.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">New Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="newPassword" name="new_password" required>
+                            <button class="btn btn-outline-secondary toggle-password" type="button"
+                                data-target="newPassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback">
+                            Please enter a new password.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="confirmPassword" name="confirm_password"
+                                required>
+                            <button class="btn btn-outline-secondary toggle-password" type="button"
+                                data-target="confirmPassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback">
+                            Please confirm your new password.
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Change Password</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/password_toggle.js' %}"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
@@ -512,6 +580,14 @@
         document.querySelectorAll('.edit-btn').forEach(button => {
             button.addEventListener('click', function () {
                 const field = this.dataset.edit;
+
+                if (field === 'password') {
+                    // Show password change modal
+                    const passwordModal = new bootstrap.Modal(document.getElementById('email_modal_pr'));
+                    passwordModal.show();
+                    return;
+                }
+
                 const container = this.closest('.setting-item');
                 const displayEl = container.querySelector('.setting-value');
                 const formEl = container.querySelector('.edit-form');
@@ -611,7 +687,14 @@
 
                 const data = await response.json();
                 if (data.status === 'success') {
-                    document.getElementById('genderDisplay').textContent = gender || 'Not specified';
+                    const genderDisplay = document.getElementById('genderDisplay');
+                    if (gender === 'male') {
+                        genderDisplay.textContent = 'Male';
+                    } else if (gender === 'female') {
+                        genderDisplay.textContent = 'Female';
+                    } else {
+                        genderDisplay.textContent = 'Not specified';
+                    }
                     // Close edit form
                     const cancelBtn = document.querySelector('.save-gender').closest('.setting-item').querySelector('.cancel-edit');
                     cancelBtn.click();
@@ -814,6 +897,67 @@
                 console.error('Error details:', error);
                 alert('An error occurred while trying to delete your account. Please try again.');
             }
+        });
+
+        // Handle password change form submission
+        document.getElementById('passwordChangeForm')?.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            if (!this.checkValidity()) {
+                e.stopPropagation();
+                this.classList.add('was-validated');
+                return;
+            }
+
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (newPassword !== confirmPassword) {
+                alert('New passwords do not match');
+                return;
+            }
+
+            try {
+                const response = await fetch('/accounts/profile/settings/update/password/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        current_password: currentPassword,
+                        new_password: newPassword
+                    })
+                });
+
+                const data = await response.json();
+                if (data.status === 'success') {
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('email_modal_pr'));
+                    modal.hide();
+                    // Clear form
+                    this.reset();
+                    // Show success message
+                    alert('Password changed successfully');
+                } else {
+                    alert(data.message || 'Failed to change password');
+                }
+            } catch (error) {
+                alert('Error changing password');
+            }
+        });
+
+        // Handle password visibility toggle
+        document.querySelectorAll('.toggle-password').forEach(button => {
+            button.addEventListener('click', function () {
+                const targetId = this.dataset.target;
+                const input = document.getElementById(targetId);
+                const type = input.type === 'password' ? 'text' : 'password';
+                input.type = type;
+                this.querySelector('i').classList.toggle('fa-eye');
+                this.querySelector('i').classList.toggle('fa-eye-slash');
+            });
         });
     });
 </script>

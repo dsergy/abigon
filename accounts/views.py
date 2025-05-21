@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.core.mail import send_mail
-from django.contrib.auth import get_user_model, logout
+from django.contrib.auth import get_user_model, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.core.validators import RegexValidator
@@ -286,3 +286,42 @@ def delete_account(request):
 def login_modal(request):
     """Display login modal."""
     return render(request, 'accounts/modals/login_modal.html', get_recaptcha_context())
+
+@login_required
+@require_POST
+def update_password(request):
+    """Update user's password."""
+    try:
+        data = json.loads(request.body)
+        current_password = data.get('current_password')
+        new_password = data.get('new_password')
+        
+        if not current_password or not new_password:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Both current and new passwords are required.'
+            }, status=400)
+        
+        # Verify current password
+        if not request.user.check_password(current_password):
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Current password is incorrect.'
+            }, status=400)
+        
+        # Set new password
+        request.user.set_password(new_password)
+        request.user.save()
+        
+        # Update session to prevent logout
+        update_session_auth_hash(request, request.user)
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Password updated successfully.'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=400)

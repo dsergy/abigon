@@ -88,22 +88,30 @@
                         </div>
                     </div>
 
-                    <!-- Age Field -->
+                    <!-- Date of Birth Field -->
                     <div class="setting-item mb-4">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <label class="form-label">Age</label>
-                                <div class="setting-value" id="ageDisplay">{{ user.age|default:"Not specified" }}</div>
+                                <label class="form-label">Date of Birth</label>
+                                <div class="setting-value" id="dobDisplay">
+                                    {% if user.date_of_birth %}
+                                    {{ user.date_of_birth|date:"F j, Y" }}
+                                    <div class="text-muted small">Age: {{ user.age|default:"Not specified" }}</div>
+                                    {% else %}
+                                    Not specified
+                                    {% endif %}
+                                </div>
                                 <div class="edit-form d-none">
-                                    <input type="number" class="form-control" id="ageInput"
-                                        value="{{ user.age|default:"" }}" min="13" max="120">
+                                    <input type="date" class="form-control" id="dobInput"
+                                        value="{{ user.date_of_birth|date:'Y-m-d'|default:'' }}"
+                                        max="{{ today_date|date:'Y-m-d' }}">
                                     <div class="mt-2">
-                                        <button class="btn btn-sm btn-primary save-age">Save</button>
+                                        <button class="btn btn-sm btn-primary save-dob">Save</button>
                                         <button class="btn btn-sm btn-link cancel-edit">Cancel</button>
                                     </div>
                                 </div>
                             </div>
-                            <button class="btn btn-link edit-btn" data-edit="age">
+                            <button class="btn btn-link edit-btn" data-edit="dob">
                                 <i class="fas fa-pen"></i>
                             </button>
                         </div>
@@ -641,32 +649,57 @@
             }
         });
 
-        // Handle age save
-        document.querySelector('.save-age')?.addEventListener('click', async function () {
-            const ageInput = document.getElementById('ageInput');
-            const age = ageInput.value ? parseInt(ageInput.value) : null;
+        // Handle date of birth update
+        document.querySelector('.save-dob')?.addEventListener('click', async function () {
+            const dobInput = document.getElementById('dobInput');
+            const dob = dobInput.value;
+
+            if (!dob) {
+                alert('Please enter your date of birth');
+                return;
+            }
 
             try {
-                const response = await fetch('/accounts/profile/settings/update/age/', {
+                const response = await fetch('/accounts/profile/settings/update/dob/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRFToken': csrfToken
                     },
-                    body: JSON.stringify({ age })
+                    body: JSON.stringify({ date_of_birth: dob })
                 });
 
                 const data = await response.json();
                 if (data.status === 'success') {
-                    document.getElementById('ageDisplay').textContent = age || 'Not specified';
-                    // Close edit form
-                    const cancelBtn = document.querySelector('.save-age').closest('.setting-item').querySelector('.cancel-edit');
-                    cancelBtn.click();
+                    // Update display
+                    const dobDisplay = document.getElementById('dobDisplay');
+                    const date = new Date(dob);
+                    const formattedDate = date.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+
+                    // Calculate age
+                    const today = new Date();
+                    const birthDate = new Date(dob);
+                    let age = today.getFullYear() - birthDate.getFullYear();
+                    const monthDiff = today.getMonth() - birthDate.getMonth();
+                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                        age--;
+                    }
+
+                    dobDisplay.innerHTML = `${formattedDate}<div class="text-muted small">Age: ${age}</div>`;
+
+                    // Hide edit form
+                    const editForm = dobInput.closest('.edit-form');
+                    editForm.classList.add('d-none');
+                    editForm.previousElementSibling.classList.remove('d-none');
                 } else {
-                    alert(data.message || 'Failed to update age');
+                    alert(data.message || 'Failed to update date of birth');
                 }
             } catch (error) {
-                alert('Error updating age');
+                alert('Error updating date of birth');
             }
         });
 

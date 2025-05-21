@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import RegexValidator
+from datetime import date
 
 class User(AbstractUser):
     GENDER_CHOICES = [
@@ -12,7 +13,7 @@ class User(AbstractUser):
 
     name = models.CharField(_('Name'), max_length=255, blank=True)
     avatar = models.ImageField(_('Avatar'), upload_to='avatars/', null=True, blank=True)
-    age = models.PositiveIntegerField(_('Age'), null=True, blank=True)
+    date_of_birth = models.DateField(_('Date of Birth'), null=True, blank=True)
     gender = models.CharField(_('Gender'), max_length=10, choices=GENDER_CHOICES, default='', blank=True)
     
     # Contact Information
@@ -34,3 +35,10 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+
+    @property
+    def age(self):
+        if not self.date_of_birth:
+            return None
+        today = date.today()
+        return today.year - self.date_of_birth.year - ((today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day))

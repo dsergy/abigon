@@ -5,14 +5,14 @@ from .models import User
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
-    list_display = ('email', 'name', 'age', 'gender', 'is_staff')
+    list_display = ('email', 'name', 'date_of_birth', 'gender', 'is_staff')
     list_filter = ('is_staff', 'is_superuser', 'is_active', 'gender')
     search_fields = ('email', 'name')
     ordering = ('email',)
 
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        (_('Personal info'), {'fields': ('name', 'avatar', 'age', 'gender')}),
+        (_('Personal info'), {'fields': ('name', 'avatar', 'date_of_birth', 'gender')}),
         (_('Permissions'), {
             'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
         }),

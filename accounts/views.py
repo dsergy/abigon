@@ -10,6 +10,7 @@ from django.core.files.storage import default_storage
 import json
 import re
 from django.template.loader import render_to_string
+from datetime import datetime, date
 
 from .auth_views import (
     login_view, logout_view, register_email, verify_code,
@@ -319,6 +320,48 @@ def update_password(request):
         return JsonResponse({
             'status': 'success',
             'message': 'Password updated successfully.'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=400)
+
+@login_required
+@require_POST
+def update_dob(request):
+    """Update user's date of birth."""
+    try:
+        data = json.loads(request.body)
+        date_of_birth = data.get('date_of_birth')
+        
+        if not date_of_birth:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Date of birth is required.'
+            }, status=400)
+        
+        # Validate date format
+        try:
+            dob = datetime.strptime(date_of_birth, '%Y-%m-%d').date()
+        except ValueError:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid date format.'
+            }, status=400)
+        
+        # Calculate age
+        today = date.today()
+        age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+        
+        # Update user's date of birth
+        request.user.date_of_birth = dob
+        request.user.save()
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Date of birth updated successfully.',
+            'age': age
         })
     except Exception as e:
         return JsonResponse({

@@ -40,5 +40,6 @@ urlpatterns = [
     path('profile/settings/verify/phone/', views.verify_phone, name='verify_phone'),
     path('profile/settings/update/zipcode/', views.update_zipcode, name='update_zipcode'),
     path('profile/settings/update/password/', views.update_password, name='update_password'),
+    path('profile/settings/update/dob/', views.update_dob, name='update_dob'),
     path('profile/settings/delete-account/', views.delete_account, name='delete_account'),
 ] 

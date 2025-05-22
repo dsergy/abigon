@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include  
 from django.conf import settings  
 from django.conf.urls.static import static  
-from .views import home, register  # импортируем конкретные функции  
+from .views import home, register, services, events  # импортируем конкретные функции  
 
 urlpatterns = [  
     path('', home, name='home'),  
@@ -26,6 +26,8 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),  
     path('accounts/', include('allauth.urls')),  # allauth URLs  
     path('', include('ads.urls')),  
+    path('services/', services, name='services'),
+    path('events/', events, name='events'),
 ]  
 
 if settings.DEBUG:  

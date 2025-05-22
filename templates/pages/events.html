@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Events - Abigon{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">Upcoming Events</h1>
+
+    <div class="row g-4">
+        <!-- Event 1 -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Real Estate Investment Seminar</h5>
+                    <p class="card-text">
+                        <i class="fas fa-calendar me-2"></i>June 15, 2025
+                        <br>
+                        <i class="fas fa-map-marker-alt me-2"></i>123 Main Street, City
+                    </p>
+                    <p class="card-text">Learn about the latest trends in real estate investment and market
+                        opportunities.</p>
+                    <a href="#" class="btn btn-primary">Register Now</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Event 2 -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Property Management Workshop</h5>
+                    <p class="card-text">
+                        <i class="fas fa-calendar me-2"></i>July 1, 2025
+                        <br>
+                        <i class="fas fa-map-marker-alt me-2"></i>456 Business Ave, City
+                    </p>
+                    <p class="card-text">Essential skills and strategies for effective property management.</p>
+                    <a href="#" class="btn btn-primary">Register Now</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

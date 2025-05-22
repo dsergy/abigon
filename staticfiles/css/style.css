@@ -229,13 +229,52 @@ a:hover {
 /* Main navigation */
 .main-nav .nav-link {
   color: var(--text-color);
-  font-weight: 500;
-  padding: 0.5rem 1rem;
-  transition: color 0.3s ease;
+  font-weight: 700;
+  padding: 0.5rem 1.5rem;
+  font-size: 1.1rem;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  display: inline-block;
+  /* Фиксирует пространство для анимации */
+  transform-origin: center;
+  /* Точка трансформации по центру */
 }
 
 .main-nav .nav-link:hover {
   color: var(--button-bg);
+  transform: scale(1.05) translateZ(0);
+  /* translateZ(0) для аппаратного ускорения */
+  backface-visibility: hidden;
+  /* Предотвращает мерцание */
+}
+
+.main-nav .nav-link.active {
+  color: var(--button-bg);
+  font-weight: 800;
+}
+
+.main-nav .nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--button-bg);
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.main-nav .nav-link:hover::after,
+.main-nav .nav-link.active::after {
+  width: 70%;
+}
+
+.main-nav .nav-item {
+  margin: 0 0.3rem;
+  /* Оптимальные отступы между пунктами */
 }
 
 /* Responsive adjustments */

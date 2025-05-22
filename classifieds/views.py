@@ -8,7 +8,7 @@ from django.contrib.auth import login
 def home(request):  
     """Home page view."""
     latest_ads = Ad.objects.filter(status='published').order_by('-created_at')[:6]
-    return render(request, 'home.html', {
+    return render(request, 'pages/home.html', {
         'latest_ads': latest_ads,
     })  
 
@@ -21,4 +21,12 @@ def register(request):
             return redirect('home')  
     else:  
         form = UserCreationForm()  
-    return render(request, 'registration/register.html', {'form': form})
+    return render(request, 'accounts/auth/register.html', {'form': form})
+
+def services(request):
+    """View for services page."""
+    return render(request, 'pages/services.html')
+
+def events(request):
+    """View for events page."""
+    return render(request, 'pages/events.html')

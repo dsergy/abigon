@@ -47,3 +47,7 @@ class AdDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_queryset(self):
         return Ad.objects.filter(author=self.request.user)
+
+def new_post_main(request):
+    """View for the new post main page."""
+    return render(request, 'ads/new_post/new_post_main.html')

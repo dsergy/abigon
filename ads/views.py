@@ -2,7 +2,10 @@ from django.shortcuts import render
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-from .models import Ad, Category
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
+from .models import Ad, MainCategory, SubCategory
+from .forms import AdForm
 
 class AdListView(ListView):
     model = Ad
@@ -12,6 +15,11 @@ class AdListView(ListView):
 
     def get_queryset(self):
         return Ad.objects.filter(status='published')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['main_categories'] = MainCategory.objects.all()
+        return context
 
 class AdDetailView(DetailView):
     model = Ad
@@ -25,8 +33,8 @@ class AdDetailView(DetailView):
 
 class AdCreateView(LoginRequiredMixin, CreateView):
     model = Ad
+    form_class = AdForm
     template_name = 'ads/ad_form.html'
-    fields = ['title', 'description', 'price', 'category']
 
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -34,8 +42,8 @@ class AdCreateView(LoginRequiredMixin, CreateView):
 
 class AdUpdateView(LoginRequiredMixin, UpdateView):
     model = Ad
+    form_class = AdForm
     template_name = 'ads/ad_form.html'
-    fields = ['title', 'description', 'price', 'category']
 
     def get_queryset(self):
         return Ad.objects.filter(author=self.request.user)
@@ -58,3 +66,13 @@ def new_post_base(request):
     return render(request, 'ads/new_post/new_post_base.html', {
         'post_type': post_type
     })
+
+@require_GET
+def get_subcategories(request):
+    """API endpoint to get subcategories for a main category."""
+    main_category_id = request.GET.get('main_category')
+    if main_category_id:
+        subcategories = SubCategory.objects.filter(main_category_id=main_category_id)
+        data = [{'id': sub.id, 'name': sub.name} for sub in subcategories]
+        return JsonResponse(data, safe=False)
+    return JsonResponse([], safe=False)

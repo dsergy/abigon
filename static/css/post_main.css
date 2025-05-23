@@ -164,53 +164,58 @@
     flex-direction: column;
     background-color: #fff;
     position: relative;
+    margin-top: 0;
+    border: none;
+    box-shadow: none;
+    padding-top: 0;
 }
 
-/* Progress Section (10%) */
+/* Progress Bar Styles (универсальные, без выделения) */
 .progress-section {
-    height: 10%;
-    min-height: 80px;
-    padding: 20px 40px;
-    background-color: #fff;
-}
-
-.progress-container {
-    max-width: 800px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    width: 100%;
 }
 
 .progress-dots {
     display: flex;
-    gap: 20px;
+    flex-direction: row;
     align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
 }
 
 .progress-dot {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
-    background-color: #fff;
-    border: 2px solid #007bff;
-    transition: all 0.3s ease;
-}
-
-.progress-dot .dot-number {
-    color: #007bff;
-    font-weight: 500;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #f8f9fa;
+    /* стандартный фон */
+    border: 2px solid var(--button-bg, #007bff);
     font-size: 14px;
+    font-weight: 600;
+    color: var(--button-bg, #007bff);
+    margin: 0 1rem;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    cursor: pointer;
 }
 
 .progress-dot.completed,
 .progress-dot.active {
-    background-color: #007bff;
+    background: var(--button-bg, #007bff);
+    color: #fff;
 }
 
 .progress-dot.completed .dot-number,
@@ -218,32 +223,14 @@
     color: #fff;
 }
 
-/* Content Section (90%) */
-.content-section {
+.progress-line {
     flex: 1;
-    padding: 40px;
-    overflow-y: auto;
-}
-
-@media (max-width: 768px) {
-    .new-post-container {
-        flex-direction: column;
-    }
-
-    .new-post-sidebar,
-    .new-post-content {
-        width: 100%;
-    }
-
-    .new-post-sidebar::after,
-    .new-post-sidebar::before {
-        display: none;
-    }
-
-    .new-post-sidebar {
-        border-right: none;
-        border-bottom: 1px solid var(--border-color);
-    }
+    height: 3px;
+    background: #e0e0e0;
+    margin: 0 0.5rem;
+    z-index: 1;
+    position: relative;
+    max-width: 100px;
 }
 
 /* Sidebar Back Button */

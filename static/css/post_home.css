@@ -56,43 +56,6 @@
     background-color: #f8f9fa;
 }
 
-/* Progress Bar Block */
-.progress-section {
-    background-color: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    margin-bottom: 20px;
-}
-
-.progress-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-}
-
-.progress-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background-color: #e9ecef;
-    border: 2px solid #dee2e6;
-    transition: all 0.3s ease;
-}
-
-.progress-dot.active {
-    background-color: #007bff;
-    border-color: #007bff;
-    box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
-}
-
-.progress-dot.completed {
-    background-color: #28a745;
-    border-color: #28a745;
-    box-shadow: 0 0 10px rgba(40, 167, 69, 0.3);
-}
-
 /* Post Content Block */
 .post-section {
     flex: 1;

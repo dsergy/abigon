@@ -4,6 +4,7 @@
 {% block title %}Create New {{ post_type|title }} - Abigon{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/post_main.css' %}">
 <link rel="stylesheet" href="{% static 'css/post_home.css' %}">
 {% endblock %}
 
@@ -11,16 +12,24 @@
 <div class="new-post-container">
     <!-- Left Sidebar Block -->
     <div class="new-post-sidebar" id="sidebar-content">
-        {% include sidebar_template with active_page=active_page %}
+        {% include sidebar_template with active_page=active_page post_type=post_type %}
     </div>
 
     <!-- Right Content Block -->
     <div class="new-post-content">
         <!-- Progress Bar Block -->
         <div class="progress-section">
-            {% block progress_content %}
-            <!-- Progress bar content will be overridden by child templates -->
-            {% endblock %}
+            <div class="progress-dots">
+                <div class="progress-dot active" data-step="1"><span class="dot-number">1</span></div>
+                <div class="progress-line"></div>
+                <div class="progress-dot" data-step="2"><span class="dot-number">2</span></div>
+                <div class="progress-line"></div>
+                <div class="progress-dot" data-step="3"><span class="dot-number">3</span></div>
+                <div class="progress-line"></div>
+                <div class="progress-dot" data-step="4"><span class="dot-number">4</span></div>
+                <div class="progress-line"></div>
+                <div class="progress-dot" data-step="5"><span class="dot-number">5</span></div>
+            </div>
         </div>
 
         <!-- Post Content Block -->

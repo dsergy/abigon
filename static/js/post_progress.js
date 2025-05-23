@@ -61,7 +61,44 @@ class PostProgress {
 
 // Initialize progress when the page loads
 document.addEventListener('DOMContentLoaded', function () {
-    // Get progress data from the page
-    const progressData = window.postProgressData || { currentPage: 1, totalPages: 5 };
-    window.postProgress = new PostProgress(progressData.currentPage, progressData.totalPages);
+    const progressDots = document.querySelectorAll('.progress-dot');
+    let currentStep = 1;
+
+    // Find the initial active step
+    progressDots.forEach(dot => {
+        if (dot.classList.contains('active')) {
+            currentStep = parseInt(dot.dataset.step);
+        }
+    });
+
+    function updateProgress(step) {
+        progressDots.forEach(dot => {
+            const dotStep = parseInt(dot.dataset.step);
+            dot.classList.remove('active', 'completed');
+            if (dotStep < step) {
+                dot.classList.add('completed');
+            } else if (dotStep === step) {
+                dot.classList.add('active');
+            }
+        });
+    }
+
+    function handleStepClick(step) {
+        if (step <= currentStep + 1) {
+            currentStep = step;
+            updateProgress(step);
+            // Emit custom event for step change
+            const event = new CustomEvent('stepChanged', {
+                detail: { step: step }
+            });
+            document.dispatchEvent(event);
+        }
+    }
+
+    progressDots.forEach(dot => {
+        const step = parseInt(dot.dataset.step);
+        dot.addEventListener('click', function () {
+            handleStepClick(step);
+        });
+    });
 }); 

@@ -70,8 +70,9 @@ def update_name(request):
     try:
         data = json.loads(request.body)
         name = data.get('name', '').strip()
-        request.user.name = name
-        request.user.save()
+        user = request.user
+        user.name = name
+        user.save()
         return JsonResponse({'status': 'success', 'name': name})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
@@ -87,8 +88,9 @@ def update_age(request):
             age = int(age)
             if age < 13 or age > 120:
                 raise ValueError("Age must be between 13 and 120")
-        request.user.age = age
-        request.user.save()
+        user = request.user
+        user.age = age
+        user.save()
         return JsonResponse({'status': 'success', 'age': age})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
@@ -102,8 +104,9 @@ def update_gender(request):
         gender = data.get('gender', '')
         if gender not in [choice[0] for choice in request.user.GENDER_CHOICES]:
             raise ValueError("Invalid gender choice")
-        request.user.gender = gender
-        request.user.save()
+        user = request.user
+        user.gender = gender
+        user.save()
         return JsonResponse({'status': 'success', 'gender': gender})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
@@ -117,15 +120,17 @@ def update_avatar(request):
             raise ValueError("No avatar file provided")
         
         avatar = request.FILES['avatar']
-        # Delete old avatar if exists
-        if request.user.avatar:
-            default_storage.delete(request.user.avatar.path)
+        user = request.user
         
-        request.user.avatar = avatar
-        request.user.save()
+        # Delete old avatar if exists
+        if user.avatar:
+            default_storage.delete(user.avatar.path)
+        
+        user.avatar = avatar
+        user.save()
         return JsonResponse({
             'status': 'success',
-            'avatar_url': request.user.avatar.url
+            'avatar_url': user.avatar.url
         })
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
@@ -137,6 +142,7 @@ def update_phone(request):
     try:
         data = json.loads(request.body)
         phone = data.get('phone', '').strip()
+        user = request.user
         
         # Validate phone format
         phone_regex = RegexValidator(
@@ -146,32 +152,32 @@ def update_phone(request):
         phone_regex(phone)
         
         # Reset verification if phone number changes
-        if request.user.phone != phone:
-            request.user.phone_verified = False
+        if user.phone != phone:
+            user.phone_verified = False
             
-        request.user.phone = phone
-        request.user.save()
+        user.phone = phone
+        user.save()
         
         # Generate and send verification code if phone changed
-        if not request.user.phone_verified:
+        if not user.phone_verified:
             from .utils import generate_verification_code, generate_token
             code = generate_verification_code()
-            token = generate_token(request.user.email, code)
+            token = generate_token(user.email, code)
             request.session['phone_verification_token'] = token
             # Here you would typically send an SMS, but for demo we'll use email
             send_mail(
                 'Phone Verification Code',
                 f'Your phone verification code is: {code}',
                 settings.DEFAULT_FROM_EMAIL,
-                [request.user.email],
+                [user.email],
                 fail_silently=False,
             )
             
         return JsonResponse({
             'status': 'success',
             'phone': phone,
-            'verified': request.user.phone_verified,
-            'verification_needed': not request.user.phone_verified
+            'verified': user.phone_verified,
+            'verification_needed': not user.phone_verified
         })
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
@@ -184,14 +190,15 @@ def verify_phone(request):
         data = json.loads(request.body)
         code = data.get('code')
         token = request.session.get('phone_verification_token')
+        user = request.user
         
         from .utils import verify_token
         payload = verify_token(token)
         if not payload or payload['code'] != code:
             raise ValueError("Invalid verification code")
             
-        request.user.phone_verified = True
-        request.user.save()
+        user.phone_verified = True
+        user.save()
         
         return JsonResponse({
             'status': 'success',
@@ -207,6 +214,7 @@ def update_zipcode(request):
     try:
         data = json.loads(request.body)
         zipcode = data.get('zipcode', '').strip()
+        user = request.user
         
         # Validate zipcode format
         zipcode_regex = RegexValidator(
@@ -214,9 +222,9 @@ def update_zipcode(request):
             message="Zipcode must be 5 digits"
         )
         zipcode_regex(zipcode)
-        
-        request.user.zipcode = zipcode
-        request.user.save()
+            
+        user.zipcode = zipcode
+        user.save()
         
         return JsonResponse({
             'status': 'success',
@@ -229,59 +237,44 @@ def update_zipcode(request):
 def delete_account(request):
     """Handle account deletion."""
     if request.method == 'POST':
-        password = request.POST.get('password')
-        
-        if not password:
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Password is required to delete your account.'
-            }, status=400)
-        
-        # Verify password
-        if not request.user.check_password(password):
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Invalid password. Please try again.'
-            }, status=400)
-        
         try:
-            # Delete user's avatar if exists
-            if request.user.avatar:
-                default_storage.delete(request.user.avatar.path)
-            
-            # Delete user's media files
-            user_media_path = f'user_{request.user.id}'
-            if default_storage.exists(user_media_path):
-                default_storage.delete(user_media_path)
-            
-            # Delete user's session data
-            request.session.flush()
-            
-            # Delete user's cache data
-            from django.core.cache import cache
-            cache.delete(f'user_{request.user.id}_data')
-            
-            # Delete user
+            password = request.POST.get('password')
             user = request.user
+
+            if not password:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Password is required to delete your account.'
+                }, status=400)
+            
+            # Verify password
+            if not user.check_password(password):
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Invalid password. Please try again.'
+                }, status=400)
+
+            # Delete user's avatar if exists
+            if user.avatar:
+                default_storage.delete(user.avatar.path)
+            
+            # Delete the user
             user.delete()
             
-            # Logout user
+            # Logout the user
             logout(request)
             
             return JsonResponse({
                 'status': 'success',
-                'message': 'Your account has been successfully deleted.'
+                'message': 'Your account has been deleted successfully.'
             })
         except Exception as e:
             return JsonResponse({
                 'status': 'error',
-                'message': 'Failed to delete account. Please try again.'
-            }, status=500)
+                'message': str(e)
+            }, status=400)
     
-    return JsonResponse({
-        'status': 'error',
-        'message': 'Invalid request method.'
-    }, status=405)
+    return render(request, 'accounts/delete_account.html')
 
 @require_http_methods(['GET'])
 def login_modal(request):

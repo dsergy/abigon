@@ -62,26 +62,32 @@ def new_post_main(request):
 
 def new_post_base(request):
     """View for the new post base page with categories."""
-    post_type = request.GET.get('type', 'buy')
-    
-    # Determine which sidebar template to use
-    if post_type == 'services':
-        sidebar_template = 'ads/new_post/sidebars/services_sidebar.html'
-        active_page = 'professional'  # Default active page
-    elif post_type == 'events':
-        sidebar_template = 'ads/new_post/sidebars/events_sidebar.html'
-        active_page = 'concerts'  # Default active page
-    else:  # buy or rent
-        sidebar_template = 'ads/new_post/sidebars/buy_rent_sidebar.html'
-        active_page = 'real_estate'  # Default active page
-    
-    context = {
-        'post_type': post_type,
-        'sidebar_template': sidebar_template,
-        'active_page': active_page,
-    }
-    
-    return render(request, 'ads/new_post/new_post_base.html', context)
+    try:
+        post_type = request.GET.get('type', 'buy')
+        
+        # Determine which sidebar template to use
+        if post_type == 'services':
+            sidebar_template = 'ads/new_post/sidebars/services_sidebar.html'
+            active_page = 'professional'  # Default active page
+        elif post_type == 'events':
+            sidebar_template = 'ads/new_post/sidebars/events_sidebar.html'
+            active_page = 'concerts'  # Default active page
+        else:  # buy or rent
+            sidebar_template = 'ads/new_post/sidebars/buy_rent_sidebar.html'
+            active_page = 'real_estate'  # Default active page
+        
+        context = {
+            'post_type': post_type,
+            'sidebar_template': sidebar_template,
+            'active_page': active_page,
+        }
+        
+        return render(request, 'ads/new_post/new_post_base.html', context)
+    except Exception as e:
+        # Log the error
+        print(f"Error in new_post_base: {str(e)}")
+        # Return a 500 error page or redirect to home
+        return render(request, '500.html', status=500)
 
 def post_home1(request):
     post_type = request.GET.get('type', 'buy')

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Create New {{ post_type|title }} - Abigon{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/post_main.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="new-post-container">
+    <!-- Left Sidebar -->
+    <div class="new-post-sidebar">
+        <h2 class="sidebar-title">{{ post_type|title }}</h2>
+        <ul class="sidebar-menu">
+            {% if post_type == 'buy' %}
+            <li class="sidebar-menu-item">
+                <a href="#real-estate" class="sidebar-menu-link active">
+                    <i class="fas fa-building"></i>
+                    Real Estate
+                </a>
+            </li>
+            <li class="sidebar-menu-item">
+                <a href="#vehicles" class="sidebar-menu-link">
+                    <i class="fas fa-car"></i>
+                    Vehicles
+                </a>
+            </li>
+            <li class="sidebar-menu-item">
+                <a href="#electronics" class="sidebar-menu-link">
+                    <i class="fas fa-laptop"></i>
+                    Electronics
+                </a>
+            </li>
+            {% elif post_type == 'service' %}
+            <li class="sidebar-menu-item">
+                <a href="#legal-financial" class="sidebar-menu-link active">
+                    <i class="fas fa-balance-scale"></i>
+                    Legal & Financial Services
+                </a>
+            </li>
+            <li class="sidebar-menu-item">
+                <a href="#home-maintenance" class="sidebar-menu-link">
+                    <i class="fas fa-home"></i>
+                    Home & Maintenance Services
+                </a>
+            </li>
+            <li class="sidebar-menu-item">
+                <a href="#transportation" class="sidebar-menu-link">
+                    <i class="fas fa-truck"></i>
+                    Transportation & Moving
+                </a>
+            </li>
+            {% elif post_type == 'event' %}
+            <li class="sidebar-menu-item">
+                <a href="#concerts" class="sidebar-menu-link active">
+                    <i class="fas fa-music"></i>
+                    Concerts & Performances
+                </a>
+            </li>
+            <li class="sidebar-menu-item">
+                <a href="#sports" class="sidebar-menu-link">
+                    <i class="fas fa-futbol"></i>
+                    Sports & Recreation
+                </a>
+            </li>
+            <li class="sidebar-menu-item">
+                <a href="#other-events" class="sidebar-menu-link">
+                    <i class="fas fa-calendar"></i>
+                    Other Events
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <!-- Right Content -->
+    <div class="new-post-content">
+        {% block post_content %}
+        <!-- Content will be overridden by child templates -->
+        {% endblock %}
+    </div>
+</div>
+{% endblock %}

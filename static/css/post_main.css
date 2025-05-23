@@ -69,3 +69,115 @@
         font-size: 1.1rem;
     }
 }
+
+/* New Post Base Page Styles */
+.new-post-container {
+    display: flex;
+    min-height: calc(100vh - 200px);
+    background-color: var(--bg-color);
+    position: relative;
+}
+
+.new-post-sidebar {
+    width: 25%;
+    background-color: var(--sidebar-bg);
+    padding: 2rem 1rem;
+    position: relative;
+}
+
+.new-post-sidebar::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 70%;
+    width: 1px;
+    background: linear-gradient(to bottom,
+            transparent,
+            var(--primary-color) 20%,
+            var(--primary-color) 80%,
+            transparent);
+    opacity: 0.3;
+}
+
+.new-post-content {
+    width: 75%;
+    padding: 2rem;
+    position: relative;
+}
+
+/* Add decorative elements */
+.new-post-sidebar::before {
+    content: '';
+    position: absolute;
+    right: -4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    opacity: 0.5;
+    box-shadow: 0 0 10px var(--primary-color);
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-menu-item {
+    margin-bottom: 0.5rem;
+}
+
+.sidebar-menu-link {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: var(--text-color);
+    text-decoration: none;
+    border-radius: var(--button-radius);
+    transition: all var(--transition-speed);
+}
+
+.sidebar-menu-link:hover,
+.sidebar-menu-link.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.sidebar-menu-link i {
+    margin-right: 0.75rem;
+    font-size: 1.1rem;
+}
+
+.sidebar-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    padding: 0 1rem;
+    color: var(--text-color);
+}
+
+@media (max-width: 768px) {
+    .new-post-container {
+        flex-direction: column;
+    }
+
+    .new-post-sidebar,
+    .new-post-content {
+        width: 100%;
+    }
+
+    .new-post-sidebar::after,
+    .new-post-sidebar::before {
+        display: none;
+    }
+
+    .new-post-sidebar {
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+}

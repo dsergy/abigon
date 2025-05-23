@@ -51,3 +51,10 @@ class AdDeleteView(LoginRequiredMixin, DeleteView):
 def new_post_main(request):
     """View for the new post main page."""
     return render(request, 'ads/new_post/new_post_main.html')
+
+def new_post_base(request):
+    """View for the new post base page with categories."""
+    post_type = request.GET.get('type', 'buy')
+    return render(request, 'ads/new_post/new_post_base.html', {
+        'post_type': post_type
+    })

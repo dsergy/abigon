@@ -4,81 +4,73 @@
 {% block title %}Create New {{ post_type|title }} - Abigon{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/post_main.css' %}">
+<link rel="stylesheet" href="{% static 'css/post_home.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="new-post-container">
-    <!-- Left Sidebar -->
-    <div class="new-post-sidebar">
-        <h2 class="sidebar-title">{{ post_type|title }}</h2>
-        <ul class="sidebar-menu">
-            {% if post_type == 'buy' %}
-            <li class="sidebar-menu-item">
-                <a href="#real-estate" class="sidebar-menu-link active">
-                    <i class="fas fa-building"></i>
-                    Real Estate
-                </a>
-            </li>
-            <li class="sidebar-menu-item">
-                <a href="#vehicles" class="sidebar-menu-link">
-                    <i class="fas fa-car"></i>
-                    Vehicles
-                </a>
-            </li>
-            <li class="sidebar-menu-item">
-                <a href="#electronics" class="sidebar-menu-link">
-                    <i class="fas fa-laptop"></i>
-                    Electronics
-                </a>
-            </li>
-            {% elif post_type == 'service' %}
-            <li class="sidebar-menu-item">
-                <a href="#legal-financial" class="sidebar-menu-link active">
-                    <i class="fas fa-balance-scale"></i>
-                    Legal & Financial Services
-                </a>
-            </li>
-            <li class="sidebar-menu-item">
-                <a href="#home-maintenance" class="sidebar-menu-link">
-                    <i class="fas fa-home"></i>
-                    Home & Maintenance Services
-                </a>
-            </li>
-            <li class="sidebar-menu-item">
-                <a href="#transportation" class="sidebar-menu-link">
-                    <i class="fas fa-truck"></i>
-                    Transportation & Moving
-                </a>
-            </li>
-            {% elif post_type == 'event' %}
-            <li class="sidebar-menu-item">
-                <a href="#concerts" class="sidebar-menu-link active">
-                    <i class="fas fa-music"></i>
-                    Concerts & Performances
-                </a>
-            </li>
-            <li class="sidebar-menu-item">
-                <a href="#sports" class="sidebar-menu-link">
-                    <i class="fas fa-futbol"></i>
-                    Sports & Recreation
-                </a>
-            </li>
-            <li class="sidebar-menu-item">
-                <a href="#other-events" class="sidebar-menu-link">
-                    <i class="fas fa-calendar"></i>
-                    Other Events
-                </a>
-            </li>
-            {% endif %}
-        </ul>
+    <!-- Left Sidebar Block -->
+    <div class="new-post-sidebar" id="sidebar-content">
+        {% include sidebar_template with active_page=active_page %}
     </div>
 
-    <!-- Right Content -->
+    <!-- Right Content Block -->
     <div class="new-post-content">
-        {% block post_content %}
-        <!-- Content will be overridden by child templates -->
-        {% endblock %}
+        <!-- Progress Bar Block -->
+        <div class="progress-section">
+            {% block progress_content %}
+            <!-- Progress bar content will be overridden by child templates -->
+            {% endblock %}
+        </div>
+
+        <!-- Post Content Block -->
+        <div class="post-section" id="post-content">
+            {% block post_content %}
+            <!-- Post content will be overridden by child templates -->
+            {% endblock %}
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/post_progress.js' %}"></script>
+<script>
+    function attachSidebarListeners() {
+        document.querySelectorAll('.sidebar-menu-link').forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                const url = this.getAttribute('href');
+                const params = new URLSearchParams(new URL(url).search);
+
+                // Update URL without page reload
+                window.history.pushState({}, '', url);
+
+                // Load sidebar content
+                fetch(url)
+                    .then(response => response.text())
+                    .then(html => {
+                        document.getElementById('sidebar-content').innerHTML = html;
+                        // Reattach event listeners to new sidebar links
+                        attachSidebarListeners();
+                    })
+                    .catch(error => console.error('Error loading sidebar:', error));
+
+                // Load post content
+                const postUrl = "{% url 'ads:post_home1' %}?" + params.toString();
+                fetch(postUrl)
+                    .then(response => response.text())
+                    .then(html => {
+                        document.getElementById('post-content').innerHTML = html;
+                    })
+                    .catch(error => console.error('Error loading post content:', error));
+            });
+        });
+    }
+
+    // Initial attachment of event listeners
+    document.addEventListener('DOMContentLoaded', function () {
+        attachSidebarListeners();
+    });
+</script>
 {% endblock %}

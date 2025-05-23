@@ -1,33 +1,29 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Create New Post - Abigon{% endblock %}
+{% block title %}Create New Advertisement - Abigon{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/post_main.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="post-main-container">
-    <h1 class="post-main-title">Welcome to Abigon Post Creation</h1>
-
-    <p class="post-main-description">
-        Choose the type of post you want to create. Each category has its own specific requirements and features to help
-        you create the most effective listing.
-    </p>
+<div class="new-post-main">
+    <h1 class="post-main-title">Create New Advertisement</h1>
+    <p class="post-main-description">Choose the type of advertisement you want to create</p>
 
     <div class="post-main-buttons">
         <a href="{% url 'ads:new_post_base' %}?type=buy" class="post-main-button">
             <i class="fas fa-home"></i>
-            Buy/Rent
+            <span>Buy/Rent</span>
         </a>
-        <a href="{% url 'ads:new_post_base' %}?type=service" class="post-main-button">
-            <i class="fas fa-tools"></i>
-            Services
+        <a href="{% url 'ads:new_post_base' %}?type=services" class="post-main-button">
+            <i class="fas fa-briefcase"></i>
+            <span>Services</span>
         </a>
-        <a href="{% url 'ads:new_post_base' %}?type=event" class="post-main-button">
+        <a href="{% url 'ads:new_post_base' %}?type=events" class="post-main-button">
             <i class="fas fa-calendar-alt"></i>
-            Events
+            <span>Events</span>
         </a>
     </div>
 </div>

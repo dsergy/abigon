@@ -63,7 +63,67 @@ def new_post_main(request):
 def new_post_base(request):
     """View for the new post base page with categories."""
     post_type = request.GET.get('type', 'buy')
-    return render(request, 'ads/new_post/new_post_base.html', {
+    
+    # Determine which sidebar template to use
+    if post_type == 'services':
+        sidebar_template = 'ads/new_post/sidebars/services_sidebar.html'
+        active_page = 'professional'  # Default active page
+    elif post_type == 'events':
+        sidebar_template = 'ads/new_post/sidebars/events_sidebar.html'
+        active_page = 'concerts'  # Default active page
+    else:  # buy or rent
+        sidebar_template = 'ads/new_post/sidebars/buy_rent_sidebar.html'
+        active_page = 'real_estate'  # Default active page
+    
+    context = {
+        'post_type': post_type,
+        'sidebar_template': sidebar_template,
+        'active_page': active_page,
+    }
+    
+    return render(request, 'ads/new_post/new_post_base.html', context)
+
+def post_home1(request):
+    post_type = request.GET.get('type', 'buy')
+    category = request.GET.get('category', '')
+    
+    # Determine which sidebar template to use
+    if post_type == 'services':
+        sidebar_template = 'ads/new_post/sidebars/services_sidebar.html'
+        active_page = category
+    elif post_type == 'events':
+        sidebar_template = 'ads/new_post/sidebars/events_sidebar.html'
+        active_page = category
+    else:  # buy or rent
+        sidebar_template = 'ads/new_post/sidebars/buy_rent_sidebar.html'
+        active_page = 'real_estate'
+    
+    context = {
+        'post_type': post_type,
+        'sidebar_template': sidebar_template,
+        'active_page': active_page,
+    }
+    
+    return render(request, 'ads/new_post/post_home/post_home1.html', context)
+
+def load_sidebar(request):
+    """View for loading sidebar content via AJAX"""
+    post_type = request.GET.get('type', 'buy')
+    category = request.GET.get('category', '')
+    
+    # Determine which sidebar template to use
+    if post_type == 'services':
+        template = 'ads/new_post/sidebars/services_sidebar.html'
+        active_page = category
+    elif post_type == 'events':
+        template = 'ads/new_post/sidebars/events_sidebar.html'
+        active_page = category
+    else:  # buy or rent
+        template = 'ads/new_post/sidebars/buy_rent_sidebar.html'
+        active_page = 'real_estate'
+    
+    return render(request, template, {
+        'active_page': active_page,
         'post_type': post_type
     })
 

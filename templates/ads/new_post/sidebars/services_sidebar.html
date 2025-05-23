@@ -1,0 +1,47 @@
+{% load static %}
+
+<h2 class="sidebar-title">Services</h2>
+<ul class="sidebar-menu">
+    <li class="sidebar-menu-item">
+        <a href="{% url 'ads:load_sidebar' %}?type=services&category=professional"
+            class="sidebar-menu-link {% if active_page == 'professional' %}active{% endif %}">
+            <i class="fas fa-briefcase"></i>
+            Professional Services
+        </a>
+    </li>
+    <li class="sidebar-menu-item">
+        <a href="{% url 'ads:load_sidebar' %}?type=services&category=home"
+            class="sidebar-menu-link {% if active_page == 'home' %}active{% endif %}">
+            <i class="fas fa-home"></i>
+            Home Services
+        </a>
+    </li>
+    <li class="sidebar-menu-item">
+        <a href="{% url 'ads:load_sidebar' %}?type=services&category=education"
+            class="sidebar-menu-link {% if active_page == 'education' %}active{% endif %}">
+            <i class="fas fa-graduation-cap"></i>
+            Education
+        </a>
+    </li>
+    <li class="sidebar-menu-item">
+        <a href="{% url 'ads:load_sidebar' %}?type=services&category=health"
+            class="sidebar-menu-link {% if active_page == 'health' %}active{% endif %}">
+            <i class="fas fa-heartbeat"></i>
+            Health & Wellness
+        </a>
+    </li>
+    <li class="sidebar-menu-item">
+        <a href="{% url 'ads:load_sidebar' %}?type=services&category=other"
+            class="sidebar-menu-link {% if active_page == 'other' %}active{% endif %}">
+            <i class="fas fa-ellipsis-h"></i>
+            Other Services
+        </a>
+    </li>
+</ul>
+
+<div class="sidebar-back">
+    <a href="{% url 'ads:new_post_main' %}" class="btn btn-primary">
+        <i class="fas fa-arrow-left"></i>
+        Back
+    </a>
+</div>

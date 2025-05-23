@@ -1,0 +1,33 @@
+{% load static %}
+
+<h2 class="sidebar-title">{{ post_type|title }}</h2>
+<ul class="sidebar-menu">
+    <li class="sidebar-menu-item">
+        <a href="{% url 'ads:load_sidebar' %}?type={{ post_type }}&category=real_estate"
+            class="sidebar-menu-link {% if active_page == 'real_estate' %}active{% endif %}">
+            <i class="fas fa-building"></i>
+            Real Estate
+        </a>
+    </li>
+    <li class="sidebar-menu-item">
+        <a href="{% url 'ads:load_sidebar' %}?type={{ post_type }}&category=vehicles"
+            class="sidebar-menu-link {% if active_page == 'vehicles' %}active{% endif %}">
+            <i class="fas fa-car"></i>
+            Vehicles
+        </a>
+    </li>
+    <li class="sidebar-menu-item">
+        <a href="{% url 'ads:load_sidebar' %}?type={{ post_type }}&category=electronics"
+            class="sidebar-menu-link {% if active_page == 'electronics' %}active{% endif %}">
+            <i class="fas fa-laptop"></i>
+            Electronics
+        </a>
+    </li>
+</ul>
+
+<div class="sidebar-back">
+    <a href="{% url 'ads:new_post_main' %}" class="btn btn-primary">
+        <i class="fas fa-arrow-left"></i>
+        Back
+    </a>
+</div>

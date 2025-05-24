@@ -1,5 +1,4 @@
 {% load static %}
-{% load socialaccount %}
 
 <!-- Add jQuery -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -46,22 +45,6 @@
             </div>
             <button type="submit" class="btn btn-primary w-100" id="login-submit" disabled>Login</button>
         </form>
-
-        <div class="social-login mt-4">
-            <p class="text-center mb-3">Or Login with</p>
-            <div class="d-flex justify-content-center gap-3">
-                <a href="{% provider_login_url 'google' %}"
-                    class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2">
-                    <img src="{% static 'img/google-icon.svg' %}" alt="Google" width="20" height="20">
-                    Google
-                </a>
-                <a href="{% provider_login_url 'facebook' %}"
-                    class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2">
-                    <i class="fab fa-facebook-f"></i>
-                    Facebook
-                </a>
-            </div>
-        </div>
     </div>
     <div class="modal-footer justify-content-center">
         <p class="mb-0 text-muted">Don't have an account? <a href="#" class="register-link"
@@ -145,42 +128,6 @@
         border: none;
         border-radius: var(--button-radius);
         padding: 1rem;
-    }
-
-    .social-login {
-        margin-top: 2rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid rgba(12, 26, 50, 0.1);
-    }
-
-    .social-login .btn {
-        padding: 0.75rem 1.5rem;
-        border-radius: var(--button-radius);
-        min-width: 140px;
-        font-weight: 500;
-        transition: all 0.2s ease-in-out;
-    }
-
-    .social-login .btn:hover {
-        transform: translateY(-1px);
-    }
-
-    .social-login .btn-outline-dark {
-        border-color: rgba(12, 26, 50, 0.1);
-    }
-
-    .social-login .btn-outline-dark:hover {
-        background-color: #f8f9fa;
-    }
-
-    .social-login .btn-outline-primary {
-        border-color: #1877f2;
-        color: #1877f2;
-    }
-
-    .social-login .btn-outline-primary:hover {
-        background-color: #1877f2;
-        color: white;
     }
 </style>
 

@@ -45,9 +45,14 @@ def verify_token(token):
 
 def send_verification_email(email, code):
     """Send verification code to user's email."""
-    subject = 'Password Reset Verification Code'
-    message = f'Your verification code is: {code}\n\nIf you did not request this password reset, please contact support immediately.'
+    subject = 'Your Verification Code'
+    message = f'''Your one-time code: {code}
+
+This code confirms your action.
+If this wasn't you, contact support immediately.'''
+    
     from_email = settings.DEFAULT_FROM_EMAIL
     recipient_list = [email]
+    
     from django.core.mail import send_mail
-    send_mail(subject, message, from_email, recipient_list) 
+    send_mail(subject, message, from_email, recipient_list)

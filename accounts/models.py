@@ -11,6 +11,21 @@ class User(AbstractUser):
         ('', _('Prefer not to answer'))
     ]
 
+    USER_TYPE_CHOICES = (
+        ('admin', 'Admin'),
+        ('editor', 'Editor'),
+        ('personal', 'Personal'),
+        ('personal_pro', 'Personal Pro'),
+        ('business', 'Business'),
+        ('business_pro', 'Business Pro'),
+    )
+
+    USER_STATUS_CHOICES = (
+        ('active', 'Active'),
+        ('blocked', 'Blocked'),
+        ('suspended', 'Suspended'),
+    )
+
     name = models.CharField(_('Name'), max_length=255, blank=True)
     avatar = models.ImageField(_('Avatar'), upload_to='avatars/', null=True, blank=True)
     date_of_birth = models.DateField(_('Date of Birth'), null=True, blank=True)
@@ -29,12 +44,26 @@ class User(AbstractUser):
                                   message="ZIP code must be entered in the format: '12345' or '12345-6789'"
                               )])
 
+    user_type = models.CharField(
+        max_length=20,
+        choices=USER_TYPE_CHOICES,
+        default='personal',
+        verbose_name='User Type'
+    )
+    
+    user_status = models.CharField(
+        max_length=20,
+        choices=USER_STATUS_CHOICES,
+        default='active',
+        verbose_name='User Status'
+    )
+
     class Meta:
         verbose_name = _('User')
         verbose_name_plural = _('Users')
 
     def __str__(self):
-        return self.email
+        return f"{self.username} ({self.get_user_type_display()})"
 
     @property
     def age(self):

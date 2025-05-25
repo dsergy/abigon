@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
-from .models import Ad, MainCategory, SubCategory
+from .models import Ad, MainCategory, SubCategory, PostStatus
 from .forms import AdForm
 from django.template import TemplateDoesNotExist
 from django.contrib.auth.decorators import login_required
@@ -22,7 +22,8 @@ class AdListView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return Ad.objects.filter(status='published')
+        published_status = PostStatus.objects.get(name='published')
+        return Ad.objects.filter(status=published_status).order_by('-created_at')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

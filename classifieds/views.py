@@ -1,13 +1,14 @@
 # classifieds/views.py  
 
-from ads.models import Ad  
+from ads.models import Ad, PostStatus  
 from django.shortcuts import render, redirect  
 from django.contrib.auth.forms import UserCreationForm  
 from django.contrib.auth import login
 
 def home(request):  
     """Home page view."""
-    latest_ads = Ad.objects.filter(status='published').order_by('-created_at')[:6]
+    published_status = PostStatus.objects.get(name='published')
+    latest_ads = Ad.objects.filter(status=published_status).order_by('-created_at')[:6]
     return render(request, 'pages/home.html', {
         'latest_ads': latest_ads,
     })  

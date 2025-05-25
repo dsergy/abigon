@@ -1,5 +1,3 @@
-console.log("=== AUTH.JS LOADED ===");
-
 // Global function for toggling password visibility
 window.togglePassword = function (button) {
     const targetId = button.getAttribute('data-target');
@@ -21,7 +19,6 @@ window.togglePassword = function (button) {
 
 // Helper for safe fetch requests with CSRF token
 const csrfFetch = (url, options = {}) => {
-    console.log("CSRF Fetch called with URL:", url);
     // Get CSRF token from either meta tag or input field
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
         document.querySelector('[name=csrfmiddlewaretoken]')?.value;
@@ -46,14 +43,11 @@ const csrfFetch = (url, options = {}) => {
 
 // Helper for safe Bootstrap modal instance management
 const getOrCreateModal = (element) => {
-    console.log('Getting or creating modal for element:', element);
     if (!element) {
         console.error('Modal element not found');
         return null;
     }
-    const modal = bootstrap.Modal.getOrCreateInstance(element);
-    console.log('Modal instance:', modal);
-    return modal;
+    return bootstrap.Modal.getOrCreateInstance(element);
 };
 
 // Helper for managing modal focus and inert states
@@ -82,10 +76,6 @@ const loadForm = async (url, modalElement) => {
 
 // Helper for displaying error messages in forms
 function displayError(form, message) {
-    console.log('=== ERROR HANDLING START ===');
-    console.log('Error message:', message);
-    console.log('Form element:', form);
-
     if (!form) {
         console.error('Form not found');
         return;
@@ -95,54 +85,38 @@ function displayError(form, message) {
     const errorDiv = document.createElement('div');
     errorDiv.className = 'alert alert-danger';
     errorDiv.textContent = message;
-    console.log('Created error div:', errorDiv);
 
     // Find error container in modal content
     const modalContent = form.closest('.modal-content');
-    console.log('Modal content:', modalContent);
-
     let errorContainer = modalContent.querySelector('#registerErrorContainer');
-    console.log('Found error container:', errorContainer);
 
     if (!errorContainer) {
-        console.log('Creating new error container');
         errorContainer = document.createElement('div');
         errorContainer.id = 'registerErrorContainer';
         const modalBody = modalContent.querySelector('.modal-body');
         if (modalBody) {
             modalBody.insertBefore(errorContainer, form);
-            console.log('Inserted container into modal body');
         } else {
             modalContent.insertBefore(errorContainer, form);
-            console.log('Inserted container into modal content');
         }
     }
 
     // Clear existing errors and add new one
     errorContainer.innerHTML = '';
     errorContainer.appendChild(errorDiv);
-    console.log('Added error message to container');
 
     // Scroll to error message
     errorContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    console.log('=== ERROR HANDLING END ===');
 }
 
 // Main initialization when DOM is loaded
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('=== DOM LOADED ===');
-    console.log('Document body:', document.body.innerHTML);
-
     // Get modal elements
     const loginModal = document.getElementById('loginModal');
     const registerModal = document.getElementById('registerModal');
     const emailModal = document.getElementById('emailModal');
     const verifyModal = document.getElementById('verifyModal');
     const setPasswordModal = document.getElementById('setPasswordModal');
-
-    console.log('Login modal element:', loginModal);
-    console.log('Register modal element:', registerModal);
-    console.log('Email modal element:', emailModal);
 
     // Initialize modals
     let loginModalInstance;
@@ -159,7 +133,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     keyboard: false
                 });
             }
-            console.log('Login modal instance:', loginModalInstance);
         } catch (error) {
             console.error('Error creating login modal instance:', error);
         }
@@ -175,7 +148,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     keyboard: false
                 });
             }
-            console.log('Register modal instance:', registerModalInstance);
         } catch (error) {
             console.error('Error creating register modal instance:', error);
         }
@@ -191,7 +163,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     keyboard: false
                 });
             }
-            console.log('Email modal instance:', emailModalInstance);
         } catch (error) {
             console.error('Error creating email modal instance:', error);
         }
@@ -199,10 +170,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Function to handle login click
     function handleLoginClick(e) {
-        console.log('Login click handler called');
-        console.log('Event target:', e.target);
-        console.log('Event current target:', e.currentTarget);
-
         e.preventDefault();
         e.stopPropagation();
 
@@ -220,19 +187,15 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Load form content first
-        console.log('Fetching login form content...');
         csrfFetch('/accounts/login/modal/')
             .then(response => {
-                console.log('Login form response status:', response.status);
                 if (!response.ok) throw new Error('Failed to load login form');
                 return response.text();
             })
             .then(html => {
-                console.log('Login form HTML received');
                 const modalContent = loginModal.querySelector('.modal-content');
                 if (modalContent) {
                     modalContent.innerHTML = html;
-                    console.log('Modal content updated successfully');
                     // Show modal after content is loaded
                     loginModalInstance.show();
                 } else {
@@ -249,7 +212,6 @@ document.addEventListener('DOMContentLoaded', function () {
         // Check if clicked element or its parent has login-link class
         const loginLink = e.target.closest('.login-link');
         if (loginLink) {
-            console.log('Login link found, calling handler');
             handleLoginClick(e);
         }
     });
@@ -257,21 +219,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // Also try direct event listener on the button
     const loginButton = document.getElementById('loginButton');
     if (loginButton) {
-        console.log('Found login button, adding direct click handler');
         loginButton.addEventListener('click', handleLoginClick);
-    } else {
-        console.log('Login button not found by ID');
     }
-
-    // Remove the show.bs.modal event listener since we're handling content loading in the click handler
-    loginModal.removeEventListener('show.bs.modal', async function () {
-        // ... existing code ...
-    });
 
     // Load registration form when modal is shown
     registerModal.addEventListener('show.bs.modal', async function () {
         try {
-            console.log('Loading registration form...');
             const response = await csrfFetch('/accounts/register/');
             if (!response.ok) throw new Error('Failed to load registration form');
             const html = await response.text();
@@ -510,18 +463,13 @@ document.addEventListener('DOMContentLoaded', function () {
     if (emailModal) {
         emailModal.addEventListener('show.bs.modal', async function () {
             try {
-                console.log('Loading password reset form...');
                 const response = await csrfFetch('/accounts/password-reset/');
-                console.log('Response status:', response.status);
-
                 if (!response.ok) {
                     const data = await response.json();
                     throw new Error(data.message || 'Failed to load password reset form');
                 }
 
                 const data = await response.json();
-                console.log('Response data:', data);
-
                 if (data.status === 'success' && data.html) {
                     emailModal.querySelector('.modal-content').innerHTML = data.html;
 
@@ -583,9 +531,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 submitButton.innerHTML = 'Processing...';
 
                 // Get reCAPTCHA token
-                const recaptchaToken = document.getElementById('recaptchaResponse').value;
-                console.log('reCAPTCHA token:', recaptchaToken);
-
+                const recaptchaToken = document.getElementById('reset_recaptchaResponse').value;
                 if (!recaptchaToken) {
                     throw new Error('Please complete the reCAPTCHA verification');
                 }
@@ -598,10 +544,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     body: formData
                 });
 
-                console.log('Response status:', response.status);
                 const data = await response.json();
-                console.log('Password reset response:', data);
-
                 if (response.ok && data.status === 'success') {
                     // Show verification modal
                     const emailModal = document.getElementById('emailModal');

@@ -18,14 +18,14 @@
             {% endif %}
             <div class="mb-3">
                 <p class="text-muted">We've sent a verification code to {{ email }}</p>
-                <label for="code" class="form-label">Verification Code</label>
-                <input type="text" name="code" class="form-control" id="code" required autocomplete="one-time-code"
-                    placeholder="Enter 6-digit code">
+                <label for="verify_code" class="form-label">Verification Code</label>
+                <input type="text" name="code" class="form-control" id="verify_code" required
+                    autocomplete="one-time-code" placeholder="Enter 6-digit code">
             </div>
             <!-- Honeypot field -->
             <div style="display:none;">
-                <label for="website">Website</label>
-                <input type="text" name="website" id="website" autocomplete="off">
+                <label for="verify_website">Website</label>
+                <input type="text" name="website" id="verify_website" autocomplete="off">
             </div>
             <button type="submit" class="btn btn-primary w-100">Verify Code</button>
         </form>

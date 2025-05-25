@@ -3,21 +3,21 @@
 <h2 class="sidebar-title">{{ post_type|title }}</h2>
 <ul class="sidebar-menu">
     <li class="sidebar-menu-item">
-        <a href="{% url 'ads:load_sidebar' %}?type={{ post_type }}&category=real_estate"
+        <a href="#" data-category="real_estate"
             class="sidebar-menu-link {% if active_page == 'real_estate' %}active{% endif %}">
             <i class="fas fa-building"></i>
             Real Estate
         </a>
     </li>
     <li class="sidebar-menu-item">
-        <a href="{% url 'ads:load_sidebar' %}?type={{ post_type }}&category=vehicles"
+        <a href="#" data-category="vehicles"
             class="sidebar-menu-link {% if active_page == 'vehicles' %}active{% endif %}">
             <i class="fas fa-car"></i>
             Vehicles
         </a>
     </li>
     <li class="sidebar-menu-item">
-        <a href="{% url 'ads:load_sidebar' %}?type={{ post_type }}&category=electronics"
+        <a href="#" data-category="electronics"
             class="sidebar-menu-link {% if active_page == 'electronics' %}active{% endif %}">
             <i class="fas fa-laptop"></i>
             Electronics
@@ -31,3 +31,59 @@
         Back
     </a>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const menuLinks = document.querySelectorAll('.sidebar-menu-link');
+        const postType = '{{ post_type }}'; // Get post type from template context
+
+        menuLinks.forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                // Remove active class from all links
+                menuLinks.forEach(l => l.classList.remove('active'));
+
+                // Add active class to clicked link
+                this.classList.add('active');
+
+                // Get category from data attribute
+                const category = this.dataset.category;
+
+                // Load content for the category
+                loadCategoryContent(category);
+            });
+        });
+
+        function loadCategoryContent(category) {
+            const contentContainer = document.querySelector('#post-content');
+            if (!contentContainer) return;
+
+            // Add loading state
+            contentContainer.style.opacity = '0';
+
+            // Fetch content with correct post type
+            fetch(`/ads/post/${postType}/step/1/`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to load content');
+                    return response.text();
+                })
+                .then(content => {
+                    // Update content with fade effect
+                    setTimeout(() => {
+                        contentContainer.innerHTML = content;
+                        contentContainer.style.opacity = '1';
+                    }, 300);
+                })
+                .catch(error => {
+                    console.error('Error loading category content:', error);
+                    contentContainer.innerHTML = `
+                    <div class="alert alert-danger">
+                        Failed to load content. Please try again.
+                    </div>
+                `;
+                    contentContainer.style.opacity = '1';
+                });
+        }
+    });
+</script>

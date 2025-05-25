@@ -19,23 +19,12 @@
     <div class="new-post-content">
         <!-- Progress Bar Block -->
         <div class="progress-section">
-            <div class="progress-dots">
-                <div class="progress-dot active" data-step="1"><span class="dot-number">1</span></div>
-                <div class="progress-line"></div>
-                <div class="progress-dot" data-step="2"><span class="dot-number">2</span></div>
-                <div class="progress-line"></div>
-                <div class="progress-dot" data-step="3"><span class="dot-number">3</span></div>
-                <div class="progress-line"></div>
-                <div class="progress-dot" data-step="4"><span class="dot-number">4</span></div>
-                <div class="progress-line"></div>
-                <div class="progress-dot" data-step="5"><span class="dot-number">5</span></div>
-            </div>
+            {% include "ads/new_post/progress/progress_bar.html" with step=current_step %}
         </div>
 
         <!-- Post Content Block -->
         <div class="post-section" id="post-content">
             {% block post_content %}
-            <!-- Post content will be overridden by child templates -->
             {% endblock %}
         </div>
     </div>
@@ -43,43 +32,80 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/post_progress.js' %}"></script>
 <script>
-    function attachSidebarListeners() {
-        document.querySelectorAll('.sidebar-menu-link').forEach(link => {
-            link.addEventListener('click', function (e) {
-                e.preventDefault();
-                const url = this.getAttribute('href');
-                const params = new URLSearchParams(new URL(url).search);
+    // State management
+    const state = {
+        currentStep: parseInt('{{ current_step|default:1 }}'),
+        postType: '{{ post_type }}',
+        activePage: '{{ active_page }}'
+    };
 
-                // Update URL without page reload
-                window.history.pushState({}, '', url);
+    // Initialize progress bar
+    document.addEventListener('DOMContentLoaded', function () {
+        const progress = new PostProgress(state.currentStep, 5);
 
-                // Load sidebar content
-                fetch(url)
-                    .then(response => response.text())
-                    .then(html => {
-                        document.getElementById('sidebar-content').innerHTML = html;
-                        // Reattach event listeners to new sidebar links
-                        attachSidebarListeners();
-                    })
-                    .catch(error => console.error('Error loading sidebar:', error));
+        // Handle step changes
+        document.addEventListener('stepChanged', function (e) {
+            const { step, label } = e.detail;
 
-                // Load post content
-                const postUrl = "{% url 'ads:post_home1' %}?" + params.toString();
-                fetch(postUrl)
-                    .then(response => response.text())
-                    .then(html => {
-                        document.getElementById('post-content').innerHTML = html;
-                    })
-                    .catch(error => console.error('Error loading post content:', error));
-            });
+            // Update state
+            state.currentStep = step;
+
+            // Update URL without page reload
+            const url = new URL(window.location.href);
+            url.searchParams.set('step', step);
+            window.history.pushState({}, '', url);
+
+            // Load content for the new step
+            loadStepContent(step);
         });
+    });
+
+    // Function to load step content
+    async function loadStepContent(step) {
+        try {
+            const response = await fetch(`/ads/post/${state.postType}/step/${step}/`);
+            if (!response.ok) throw new Error('Failed to load step content');
+
+            const content = await response.text();
+            const contentContainer = document.querySelector('#post-content');
+            if (contentContainer) {
+                // Add fade out effect
+                contentContainer.style.opacity = '0';
+
+                setTimeout(() => {
+                    contentContainer.innerHTML = content;
+                    // Add fade in effect
+                    contentContainer.style.opacity = '1';
+                }, 300);
+            }
+        } catch (error) {
+            console.error('Error loading step content:', error);
+            // Show error message
+            const errorContainer = document.querySelector('#post-content');
+            if (errorContainer) {
+                errorContainer.innerHTML = `
+                    <div class="alert alert-danger">
+                        Failed to load content. Please try again.
+                    </div>
+                `;
+            }
+        }
     }
 
-    // Initial attachment of event listeners
-    document.addEventListener('DOMContentLoaded', function () {
-        attachSidebarListeners();
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', function (e) {
+        const url = new URL(window.location.href);
+        const step = parseInt(url.searchParams.get('step')) || 1;
+
+        // Update state
+        state.currentStep = step;
+
+        // Update progress bar
+        const progress = new PostProgress(step, 5);
+
+        // Load content
+        loadStepContent(step);
     });
 </script>
 {% endblock %}

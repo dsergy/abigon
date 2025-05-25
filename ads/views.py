@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from .models import Ad, MainCategory, SubCategory
 from .forms import AdForm
+from django.template import TemplateDoesNotExist
 
 class AdListView(ListView):
     model = Ad
@@ -64,6 +65,7 @@ def new_post_base(request):
     """View for the new post base page with categories."""
     try:
         post_type = request.GET.get('type', 'buy')
+        print(f"Post type: {post_type}")  # Debug info
         
         # Determine which sidebar template to use
         if post_type == 'services':
@@ -76,10 +78,14 @@ def new_post_base(request):
             sidebar_template = 'ads/new_post/sidebars/buy_rent_sidebar.html'
             active_page = 'real_estate'  # Default active page
         
+        print(f"Sidebar template: {sidebar_template}")  # Debug info
+        print(f"Active page: {active_page}")  # Debug info
+        
         context = {
             'post_type': post_type,
             'sidebar_template': sidebar_template,
             'active_page': active_page,
+            'current_step': 1,
         }
         
         return render(request, 'ads/new_post/new_post_base.html', context)
@@ -142,3 +148,41 @@ def get_subcategories(request):
         data = [{'id': sub.id, 'name': sub.name} for sub in subcategories]
         return JsonResponse(data, safe=False)
     return JsonResponse([], safe=False)
+
+def post_step(request, post_type, step):
+    """View for loading step content."""
+    try:
+        print(f"Post type: {post_type}, Step: {step}")  # Debug info
+        
+        # Определяем шаблон в зависимости от типа поста и шага
+        if post_type == 'buy':
+            template = 'ads/new_post/post_home/post_home1.html'
+        elif post_type == 'services':
+            template = 'ads/new_post/post_services/post_services1.html'
+        elif post_type == 'events':
+            template = 'ads/new_post/post_events/post_events1.html'
+        else:
+            print(f"Invalid post type: {post_type}")  # Debug info
+            return JsonResponse({'error': 'Invalid post type'}, status=400)
+
+        print(f"Using template: {template}")  # Debug info
+
+        context = {
+            'post_type': post_type,
+            'current_step': step,
+            'sidebar_template': f'ads/new_post/sidebars/{post_type}_sidebar.html',
+            'active_page': 'real_estate' if post_type == 'buy' else 'professional'
+        }
+        
+        print(f"Context: {context}")  # Debug info
+        
+        # Проверяем существование шаблона
+        try:
+            return render(request, template, context)
+        except TemplateDoesNotExist:
+            print(f"Template not found: {template}")  # Debug info
+            return JsonResponse({'error': 'Template not found'}, status=404)
+            
+    except Exception as e:
+        print(f"Error in post_step: {str(e)}")  # Debug info
+        return JsonResponse({'error': str(e)}, status=500)

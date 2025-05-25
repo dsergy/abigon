@@ -1,5 +1,9 @@
 {% load static %}
 
+<script>
+    alert('Script is running');  // Test if script executes at all
+</script>
+
 <div class="post-form-container">
     <form method="post" class="post-form" id="postHomeForm">
         {% csrf_token %}
@@ -7,7 +11,11 @@
         <!-- Listing Purpose -->
         <div class="form-group">
             <label for="listing_purpose">Listing Purpose <span class="required">*</span></label>
-            <select name="listing_purpose" id="listing_purpose" class="form-control" required>
+            <select name="listing_purpose" id="listing_purpose" class="form-control" required onchange="document.getElementById('property_type').innerHTML = this.value === 'sale' ? 
+                        '<option value=\'\'>Select property type</option><option value=\'houses\'>Houses</option><option value=\'apartments\'>Apartments</option><option value=\'commercial\'>Commercial</option><option value=\'other\'>Other</option>' : 
+                        this.value === 'rent' ? 
+                        '<option value=\'\'>Select property type</option><option value=\'houses\'>Houses</option><option value=\'apartments\'>Apartments</option><option value=\'rooms\'>Rooms</option><option value=\'commercial\'>Commercial</option><option value=\'other\'>Other</option>' : 
+                        '<option value=\'\'>Select property type</option>'">
                 <option value="">Select purpose</option>
                 <option value="sale">Sale</option>
                 <option value="rent">Rent</option>
@@ -22,40 +30,58 @@
             </select>
         </div>
 
-        <!-- Location Fields -->
+        <!-- Zip Code -->
         <div class="form-group">
-            <label for="location">Location <span class="required">*</span></label>
-            <input type="text" name="location" id="location" class="form-control" required>
+            <label for="zip_code">Zip Code <span class="required">*</span></label>
+            <input type="text" name="zip_code" id="zip_code" class="form-control" pattern="[0-9]{5}" maxlength="5"
+                required placeholder="Enter 5-digit zip code">
         </div>
 
-        <!-- Price Field -->
+        <!-- City (Auto-filled) -->
         <div class="form-group">
-            <label for="price">Price <span class="required">*</span></label>
-            <input type="number" name="price" id="price" class="form-control" required>
+            <label for="city">City</label>
+            <input type="text" name="city" id="city" class="form-control" readonly>
         </div>
 
-        <!-- Description -->
+        <!-- State (Auto-filled) -->
         <div class="form-group">
-            <label for="description">Description <span class="required">*</span></label>
-            <textarea name="description" id="description" class="form-control" rows="5" required></textarea>
+            <label for="state">State</label>
+            <input type="text" name="state" id="state" class="form-control" readonly>
+        </div>
+
+        <!-- Address -->
+        <div class="form-group">
+            <label for="address">Address</label>
+            <input type="text" name="address" id="address" class="form-control" maxlength="100"
+                placeholder="Enter street address">
+        </div>
+
+        <!-- Hide Address -->
+        <div class="form-group">
+            <div class="custom-control custom-checkbox">
+                <input type="checkbox" name="hide_address" id="hide_address" class="custom-control-input">
+                <label class="custom-control-label" for="hide_address">Hide address from listings</label>
+            </div>
         </div>
 
         <!-- Submit Button -->
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">
-                Next Step <i class="fas fa-arrow-right"></i>
+            <button type="submit" class="btn btn-primary" name="next_button">
+                Next <i class="fas fa-arrow-right"></i>
             </button>
         </div>
     </form>
 </div>
 
 <script>
+    // Wait for the DOM to be fully loaded
     document.addEventListener('DOMContentLoaded', function () {
-        const listingPurpose = document.getElementById('listing_purpose');
-        const propertyType = document.getElementById('property_type');
+        // Get the select elements
+        var listingPurpose = document.getElementById('listing_purpose');
+        var propertyType = document.getElementById('property_type');
 
-        // Property type options based on listing purpose
-        const propertyTypes = {
+        // Define property types
+        var propertyTypes = {
             sale: [
                 { value: 'houses', label: 'Houses' },
                 { value: 'apartments', label: 'Apartments' },
@@ -72,23 +98,170 @@
         };
 
         // Function to update property type options
-        function updatePropertyTypes() {
-            const purpose = listingPurpose.value;
+        function updatePropertyTypes(purpose) {
+            // Clear current options
             propertyType.innerHTML = '<option value="">Select property type</option>';
 
+            // Add new options if purpose is selected
             if (purpose && propertyTypes[purpose]) {
-                propertyTypes[purpose].forEach(option => {
-                    const opt = document.createElement('option');
-                    opt.value = option.value;
-                    opt.textContent = option.label;
-                    propertyType.appendChild(opt);
+                propertyTypes[purpose].forEach(function (option) {
+                    var optionElement = document.createElement('option');
+                    optionElement.value = option.value;
+                    optionElement.textContent = option.label;
+                    propertyType.appendChild(optionElement);
                 });
             }
         }
 
-        // Update property type options when listing purpose changes
+        // Add change event listener
         if (listingPurpose) {
-            listingPurpose.addEventListener('change', updatePropertyTypes);
+            listingPurpose.addEventListener('change', function () {
+                updatePropertyTypes(this.value);
+            });
+        }
+
+        // Initialize with current value
+        updatePropertyTypes(listingPurpose.value);
+    });
+</script>
+
+<script>
+    console.log('Script started');
+
+    // Define the property types
+    const propertyTypes = {
+        sale: [
+            { value: 'houses', label: 'Houses' },
+            { value: 'apartments', label: 'Apartments' },
+            { value: 'commercial', label: 'Commercial' },
+            { value: 'other', label: 'Other' }
+        ],
+        rent: [
+            { value: 'houses', label: 'Houses' },
+            { value: 'apartments', label: 'Apartments' },
+            { value: 'rooms', label: 'Rooms' },
+            { value: 'commercial', label: 'Commercial' },
+            { value: 'other', label: 'Other' }
+        ]
+    };
+
+    // Function to update property type options
+    function updatePropertyTypes(purpose) {
+        console.log('Updating property types for purpose:', purpose);
+
+        const propertyTypeSelect = document.getElementById('property_type');
+        console.log('Property type select element:', propertyTypeSelect);
+
+        if (!propertyTypeSelect) {
+            console.error('Property type select not found!');
+            return;
+        }
+
+        // Clear current options
+        propertyTypeSelect.innerHTML = '<option value="">Select property type</option>';
+
+        // Add new options if purpose is selected
+        if (purpose && propertyTypes[purpose]) {
+            console.log('Adding options for purpose:', purpose);
+            propertyTypes[purpose].forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option.value;
+                optionElement.textContent = option.label;
+                propertyTypeSelect.appendChild(optionElement);
+            });
+        }
+
+        // Enable/disable the select
+        propertyTypeSelect.disabled = !purpose;
+    }
+
+    // Function to initialize the selects
+    function initializeSelects() {
+        console.log('Initializing selects');
+
+        const listingPurposeSelect = document.getElementById('listing_purpose');
+        console.log('Listing purpose select element:', listingPurposeSelect);
+
+        if (!listingPurposeSelect) {
+            console.error('Listing purpose select not found!');
+            return;
+        }
+
+        // Add change event listener
+        listingPurposeSelect.addEventListener('change', function (e) {
+            console.log('Listing purpose changed to:', e.target.value);
+            updatePropertyTypes(e.target.value);
+        });
+
+        // Initialize with current value
+        console.log('Initial listing purpose value:', listingPurposeSelect.value);
+        updatePropertyTypes(listingPurposeSelect.value);
+    }
+
+    // Try to initialize immediately
+    console.log('Attempting immediate initialization');
+    initializeSelects();
+
+    // Also try after DOM is loaded
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log('DOM Content Loaded - attempting initialization again');
+        initializeSelects();
+    });
+
+    // And try after window is loaded
+    window.addEventListener('load', function () {
+        console.log('Window Loaded - attempting initialization one more time');
+        initializeSelects();
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log('DOM Content Loaded'); // Debug log
+
+        const listingPurpose = document.getElementById('listing_purpose');
+        const propertyType = document.getElementById('property_type');
+        const zipCode = document.getElementById('zip_code');
+        const city = document.getElementById('city');
+        const state = document.getElementById('state');
+
+        console.log('Listing Purpose element:', listingPurpose); // Debug log
+        console.log('Property Type element:', propertyType); // Debug log
+
+        // Function to fetch location data based on zip code
+        async function fetchLocationData(zip) {
+            if (zip.length === 5) {
+                try {
+                    // Replace with your actual API endpoint
+                    const response = await fetch(`/api/location/${zip}/`);
+                    const data = await response.json();
+                    if (data.success) {
+                        city.value = data.city;
+                        state.value = data.state;
+                    }
+                } catch (error) {
+                    console.error('Error fetching location data:', error);
+                }
+            } else {
+                city.value = '';
+                state.value = '';
+            }
+        }
+
+        // Event Listeners
+        if (listingPurpose) {
+            console.log('Adding change event listener to listing purpose'); // Debug log
+            listingPurpose.addEventListener('change', function (e) {
+                console.log('Listing purpose changed:', e.target.value); // Debug log
+            });
+        }
+
+        if (zipCode) {
+            zipCode.addEventListener('input', function (e) {
+                // Only allow numbers
+                this.value = this.value.replace(/[^0-9]/g, '');
+                if (this.value.length === 5) {
+                    fetchLocationData(this.value);
+                }
+            });
         }
 
         // Form validation
@@ -96,7 +269,13 @@
         if (form) {
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
-                // Add your form validation logic here
+
+                // Validate zip code
+                if (zipCode.value.length !== 5) {
+                    alert('Please enter a valid 5-digit zip code');
+                    return;
+                }
+
                 // If validation passes, submit the form
                 this.submit();
             });
@@ -109,6 +288,9 @@
         max-width: 800px;
         margin: 0 auto;
         padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .form-group {
@@ -138,6 +320,49 @@
         box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
     }
 
+    .form-control[readonly] {
+        background-color: #e9ecef;
+    }
+
+    .custom-control {
+        position: relative;
+        display: block;
+        min-height: 1.5rem;
+        padding-left: 1.5rem;
+    }
+
+    .custom-control-input {
+        position: absolute;
+        z-index: -1;
+        opacity: 0;
+    }
+
+    .custom-control-label {
+        position: relative;
+        margin-bottom: 0;
+        vertical-align: top;
+    }
+
+    .custom-control-label::before {
+        position: absolute;
+        top: 0.25rem;
+        left: -1.5rem;
+        display: block;
+        width: 1rem;
+        height: 1rem;
+        pointer-events: none;
+        content: "";
+        background-color: #fff;
+        border: #adb5bd solid 1px;
+        border-radius: 0.25rem;
+    }
+
+    .custom-control-input:checked~.custom-control-label::before {
+        color: #fff;
+        border-color: #007bff;
+        background-color: #007bff;
+    }
+
     .form-actions {
         margin-top: 2rem;
         text-align: right;
@@ -161,5 +386,20 @@
 
     .btn-primary i {
         margin-left: 0.5rem;
+    }
+
+    /* Add styles for disabled select */
+    select:disabled {
+        background-color: #e9ecef;
+        cursor: not-allowed;
+    }
+
+    /* Add styles for select options */
+    select option {
+        padding: 8px;
+    }
+
+    select option:first-child {
+        color: #6c757d;
     }
 </style>

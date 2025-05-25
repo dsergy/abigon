@@ -1,41 +1,91 @@
+{% extends "base.html" %}
 {% load static %}
 
-<h2 class="sidebar-title">{{ post_type|title }}</h2>
-<ul class="sidebar-menu">
-    <li class="sidebar-menu-item">
-        <a href="#" data-category="real_estate"
-            class="sidebar-menu-link {% if active_page == 'real_estate' %}active{% endif %}">
+{% block title %}Buy/Rent - Abigon{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/post_main.css' %}">
+<style>
+    .category-buttons {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .category-button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        font-size: 1rem;
+        font-weight: 500;
+        border-radius: var(--button-radius);
+        transition: all var(--transition-speed);
+        text-decoration: none;
+        color: var(--button-text);
+        background-color: var(--button-bg);
+        border: none;
+        text-align: center;
+    }
+
+    .category-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 128, 0.2);
+        color: var(--button-text);
+    }
+
+    .category-button i {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .category-button span {
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="new-post-main">
+    <h1 class="post-main-title">Buy/Rent</h1>
+    <p class="post-main-description">Choose the category you want to post</p>
+
+    <div class="category-buttons">
+        <a href="{% url 'ads:post_home1' %}?type=buy&category=real_estate" class="category-button">
             <i class="fas fa-building"></i>
-            Real Estate
+            <span>Real Estate</span>
         </a>
-    </li>
-    <li class="sidebar-menu-item">
-        <a href="#" data-category="vehicles"
-            class="sidebar-menu-link {% if active_page == 'vehicles' %}active{% endif %}">
+        <a href="{% url 'ads:post_home1' %}?type=buy&category=vehicles" class="category-button">
             <i class="fas fa-car"></i>
-            Vehicles
+            <span>Vehicles</span>
         </a>
-    </li>
-    <li class="sidebar-menu-item">
-        <a href="#" data-category="electronics"
-            class="sidebar-menu-link {% if active_page == 'electronics' %}active{% endif %}">
+        <a href="{% url 'ads:post_home1' %}?type=buy&category=electronics" class="category-button">
             <i class="fas fa-laptop"></i>
-            Electronics
+            <span>Electronics</span>
         </a>
-    </li>
-</ul>
+        <a href="#" class="category-button">
+            <i class="fas fa-plus"></i>
+            <span>More Coming</span>
+        </a>
+    </div>
 
-<div class="sidebar-back">
-    <a href="{% url 'ads:new_post_main' %}" class="btn btn-primary">
-        <i class="fas fa-arrow-left"></i>
-        Back
-    </a>
+    <div class="mt-4 text-center">
+        <a href="{% url 'ads:new_post_main' %}" class="btn btn-primary">
+            <i class="fas fa-arrow-left"></i>
+            Back
+        </a>
+    </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const menuLinks = document.querySelectorAll('.sidebar-menu-link');
-        const postType = '{{ post_type }}'; // Get post type from template context
+        const contentContainer = document.querySelector('#post-content');
 
         menuLinks.forEach(link => {
             link.addEventListener('click', function (e) {
@@ -56,14 +106,13 @@
         });
 
         function loadCategoryContent(category) {
-            const contentContainer = document.querySelector('#post-content');
             if (!contentContainer) return;
 
             // Add loading state
             contentContainer.style.opacity = '0';
 
-            // Fetch content with correct post type
-            fetch(`/ads/post/${postType}/step/1/`)
+            // Fetch content
+            fetch(`/ads/new-post/home1/?type=buy&category=${category}`)
                 .then(response => {
                     if (!response.ok) throw new Error('Failed to load content');
                     return response.text();
@@ -73,6 +122,19 @@
                     setTimeout(() => {
                         contentContainer.innerHTML = content;
                         contentContainer.style.opacity = '1';
+
+                        // Execute scripts in the loaded content
+                        const scripts = contentContainer.querySelectorAll('script');
+                        scripts.forEach(script => {
+                            const newScript = document.createElement('script');
+                            if (script.src) {
+                                newScript.src = script.src;
+                            } else {
+                                newScript.textContent = script.textContent;
+                            }
+                            document.head.appendChild(newScript);
+                            document.head.removeChild(newScript);
+                        });
                     }, 300);
                 })
                 .catch(error => {
@@ -85,5 +147,9 @@
                     contentContainer.style.opacity = '1';
                 });
         }
+
+        // Load initial content for real estate
+        loadCategoryContent('real_estate');
     });
 </script>
+{% endblock %}

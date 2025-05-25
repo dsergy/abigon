@@ -99,21 +99,9 @@ def post_home1(request):
     post_type = request.GET.get('type', 'buy')
     category = request.GET.get('category', '')
     
-    # Determine which sidebar template to use
-    if post_type == 'services':
-        sidebar_template = 'ads/new_post/sidebars/services_sidebar.html'
-        active_page = category
-    elif post_type == 'events':
-        sidebar_template = 'ads/new_post/sidebars/events_sidebar.html'
-        active_page = category
-    else:  # buy or rent
-        sidebar_template = 'ads/new_post/sidebars/buy_rent_sidebar.html'
-        active_page = 'real_estate'
-    
     context = {
         'post_type': post_type,
-        'sidebar_template': sidebar_template,
-        'active_page': active_page,
+        'active_page': category
     }
     
     return render(request, 'ads/new_post/post_home/post_home1.html', context)
@@ -186,3 +174,10 @@ def post_step(request, post_type, step):
     except Exception as e:
         print(f"Error in post_step: {str(e)}")  # Debug info
         return JsonResponse({'error': str(e)}, status=500)
+
+def buy_rent_page(request):
+    """View for the buy/rent page with sidebar."""
+    return render(request, 'ads/new_post/sidebars/buy_rent_sidebar.html', {
+        'post_type': 'buy',
+        'active_page': 'real_estate'
+    })

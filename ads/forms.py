@@ -1,5 +1,6 @@
 from django import forms  
 from .models import Ad, MainCategory, SubCategory  
+from .utils.image_processor import ImageProcessor
 
 class AdForm(forms.ModelForm):  
     main_category = forms.ModelChoiceField(  
@@ -34,3 +35,20 @@ class AdForm(forms.ModelForm):
                 pass
         elif self.instance.pk and self.instance.main_category:
             self.fields['sub_category'].queryset = self.instance.main_category.subcategories.all()
+
+class ImageUploadForm(forms.Form):
+    images = forms.ImageField(
+        required=False,
+        help_text=f'Upload up to {ImageProcessor.MAX_IMAGES} images (max {ImageProcessor.MAX_FILE_SIZE/1024/1024}MB each)'
+    )
+
+    def clean_images(self):
+        images = self.files.getlist('images')
+        if not images:
+            return []
+
+        try:
+            processed_images = ImageProcessor.process_multiple_images(images)
+            return processed_images
+        except Exception as e:
+            raise forms.ValidationError(str(e))

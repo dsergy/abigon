@@ -9,6 +9,11 @@ from .forms import AdForm
 from django.template import TemplateDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from .mixins import ImageUploadMixin
+from django.core.exceptions import ValidationError
+import logging
+
+logger = logging.getLogger(__name__)
 
 class AdListView(ListView):
     model = Ad
@@ -139,14 +144,32 @@ def post_home2(request):
         return redirect('ads:post_home1')
     
     if request.method == 'POST':
-        # Обработка загрузки изображений
-        images = request.FILES.getlist('images')
-        if images:
-            # Сохраняем изображения в сессии только если они есть
-            request.session['post_images'] = [image.name for image in images]
-        return redirect('ads:post_home3')
+        try:
+            # Обработка загрузки изображений
+            images = ImageUploadMixin().handle_image_upload(request)
+            if images:
+                request.session['post_images'] = images
+                logger.info(f"Successfully processed {len(images)} images")
+                return redirect('ads:post_home3')
+            else:
+                messages.warning(request, 'No images were uploaded')
+                return render(request, 'ads/new_post/post_home/post_home2.html', {
+                    'form': ImageUploadMixin().get_image_form()
+                })
+        except ValidationError as e:
+            logger.error(f"Validation error in post_home2: {str(e)}")
+            messages.error(request, str(e))
+        except Exception as e:
+            logger.error(f"Unexpected error in post_home2: {str(e)}")
+            messages.error(request, 'An unexpected error occurred while processing your images. Please try again.')
+        
+        return render(request, 'ads/new_post/post_home/post_home2.html', {
+            'form': ImageUploadMixin().get_image_form()
+        })
     
-    return render(request, 'ads/new_post/post_home/post_home2.html')
+    return render(request, 'ads/new_post/post_home/post_home2.html', {
+        'form': ImageUploadMixin().get_image_form()
+    })
 
 def post_home3(request):
     # Проверяем, есть ли данные из предыдущих шагов
@@ -165,7 +188,7 @@ def post_home3(request):
     # Подготавливаем данные для отображения
     context = {
         **request.session['post_data'],
-        'images': [{'url': f'/media/temp/{image}'} for image in request.session['post_images']]
+        'images': [{'url': f'/media/{image["path"]}'} for image in request.session['post_images']]
     }
     return render(request, 'ads/new_post/post_home/post_home3.html', context)
 

@@ -121,23 +121,14 @@
         background-color: #fff;
     }
 
-    .upload-progress {
-        margin-top: 1rem;
+    .error-message {
+        color: #dc3545;
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    #fileInput {
         display: none;
-    }
-
-    .progress-bar {
-        height: 20px;
-        background-color: #e9ecef;
-        border-radius: 4px;
-        overflow: hidden;
-    }
-
-    .progress-bar-fill {
-        height: 100%;
-        background-color: #007bff;
-        width: 0;
-        transition: width 0.3s ease;
     }
 </style>
 {% endblock %}
@@ -152,23 +143,22 @@
             <label>Property Images</label>
             <div class="drop-zone" id="dropZone">
                 <p>Drag and drop images here or click to select files</p>
-                <p class="text-muted">(Maximum 10 images, each up to 5MB)</p>
-                <input type="file" id="fileInput" name="images" multiple accept="image/*" style="display: none;">
+                <p class="text-muted">(Maximum 10 images, each up to 4MB)</p>
+                <input type="file" id="fileInput" name="images" accept="image/*" multiple>
             </div>
             <div class="preview-container" id="previewContainer"></div>
-            <div class="upload-status" id="uploadStatus" style="margin-top: 10px; display: none;">
-                <p class="text-success">Images uploaded successfully!</p>
+            {% if form.images.errors %}
+            <div class="error-message">
+                {{ form.images.errors }}
             </div>
+            {% endif %}
         </div>
 
         <div class="form-actions">
             <button type="button" class="btn btn-secondary" onclick="window.history.back()">
                 <i class="fas fa-arrow-left"></i> Back
             </button>
-            <button type="button" class="btn btn-info" id="uploadButton" style="margin-right: 10px;">
-                <i class="fas fa-upload"></i> Upload Images
-            </button>
-            <button type="submit" class="btn btn-primary" name="next_button" id="nextButton">
+            <button type="submit" class="btn btn-primary" name="next_button">
                 Next <i class="fas fa-arrow-right"></i>
             </button>
         </div>
@@ -182,18 +172,18 @@
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const previewContainer = document.getElementById('previewContainer');
-        const uploadButton = document.getElementById('uploadButton');
-        const nextButton = document.getElementById('nextButton');
-        const uploadStatus = document.getElementById('uploadStatus');
         const maxFiles = 10;
-        const maxFileSize = 5 * 1024 * 1024; // 5MB
-        let uploadedFiles = [];
+        const maxFileSize = 4 * 1024 * 1024; // 4MB
+        let currentFiles = new DataTransfer();
 
         // Handle click on drop zone
         dropZone.addEventListener('click', () => fileInput.click());
 
         // Handle file selection
-        fileInput.addEventListener('change', handleFiles);
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e);
+            updateFileInput();
+        });
 
         // Handle drag and drop
         dropZone.addEventListener('dragover', (e) => {
@@ -209,25 +199,22 @@
             e.preventDefault();
             dropZone.classList.remove('dragover');
             handleFiles({ target: { files: e.dataTransfer.files } });
+            updateFileInput();
         });
 
         function handleFiles(e) {
             const files = Array.from(e.target.files);
-            uploadedFiles = []; // Reset uploaded files
 
             // Check number of files
-            if (files.length > maxFiles) {
-                alert(`You can only upload up to ${maxFiles} images`);
+            if (currentFiles.files.length + files.length > maxFiles) {
+                alert(`You can only upload up to ${maxFiles} images in total`);
                 return;
             }
-
-            // Clear preview container
-            previewContainer.innerHTML = '';
 
             files.forEach(file => {
                 // Check file size
                 if (file.size > maxFileSize) {
-                    alert(`File ${file.name} is too large. Maximum size is 5MB`);
+                    alert(`File ${file.name} is too large. Maximum size is 4MB`);
                     return;
                 }
 
@@ -237,12 +224,15 @@
                     return;
                 }
 
-                uploadedFiles.push(file);
+                // Add file to DataTransfer object
+                currentFiles.items.add(file);
 
+                // Create preview
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const previewItem = document.createElement('div');
                     previewItem.className = 'preview-item';
+                    previewItem.dataset.filename = file.name;
                     previewItem.innerHTML = `
                         <img src="${e.target.result}" alt="Preview">
                         <button type="button" class="remove-btn" onclick="removeFile(this)">×</button>
@@ -251,63 +241,31 @@
                 };
                 reader.readAsDataURL(file);
             });
-
-            // Enable upload button if we have files
-            uploadButton.disabled = files.length === 0;
         }
 
-        // Handle upload button click
-        uploadButton.addEventListener('click', function () {
-            if (uploadedFiles.length === 0) {
-                alert('Please select images first');
-                return;
-            }
-
-            // Create FormData and append files
-            const formData = new FormData();
-            uploadedFiles.forEach(file => {
-                formData.append('images', file);
-            });
-
-            // Send files to server
-            fetch('{% url "ads:post_home2" %}', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                }
-            })
-                .then(response => {
-                    if (response.ok) {
-                        uploadStatus.style.display = 'block';
-                        uploadButton.disabled = true;
-                    } else {
-                        throw new Error('Upload failed');
-                    }
-                })
-                .catch(error => {
-                    alert('Error uploading images. Please try again.');
-                    console.error('Upload error:', error);
-                });
-        });
+        // Function to update the file input with current files
+        function updateFileInput() {
+            fileInput.files = currentFiles.files;
+        }
 
         // Function to remove file
         window.removeFile = function (button) {
             const previewItem = button.parentElement;
-            const index = Array.from(previewContainer.children).indexOf(previewItem);
-            uploadedFiles.splice(index, 1);
+            const filename = previewItem.dataset.filename;
+
+            // Remove file from DataTransfer object
+            const dt = new DataTransfer();
+            for (let i = 0; i < currentFiles.files.length; i++) {
+                if (currentFiles.files[i].name !== filename) {
+                    dt.items.add(currentFiles.files[i]);
+                }
+            }
+            currentFiles = dt;
+
+            // Update file input and remove preview
+            updateFileInput();
             previewItem.remove();
-
-            // Update button states
-            uploadButton.disabled = uploadedFiles.length === 0;
-            uploadStatus.style.display = 'none';
         };
-
-        // Handle form submission
-        document.getElementById('postHomeForm').addEventListener('submit', function (e) {
-            // Allow form submission regardless of image upload status
-            return true;
-        });
     });
 </script>
 {% endblock %}

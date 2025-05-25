@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Create New Advertisement - Abigon{% endblock %}
+{% block title %}New Post - Abigon{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/post_main.css' %}">
@@ -9,13 +9,13 @@
 
 {% block content %}
 <div class="new-post-main">
-    <h1 class="post-main-title">Create New Advertisement</h1>
-    <p class="post-main-description">Choose the type of advertisement you want to create</p>
+    <h1 class="post-main-title">New Post</h1>
+    <p class="post-main-description">Choose the type of post you want to create</p>
 
     <div class="post-main-buttons">
         <a href="{% url 'ads:buy_rent_page' %}" class="post-main-button">
-            <i class="fas fa-home"></i>
-            <span>Buy/Rent</span>
+            <i class="fas fa-tags"></i>
+            <span>Sell/Rent</span>
         </a>
         <a href="{% url 'ads:new_post_base' %}?type=services" class="post-main-button">
             <i class="fas fa-briefcase"></i>

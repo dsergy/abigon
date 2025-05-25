@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
@@ -7,6 +7,8 @@ from django.views.decorators.http import require_GET
 from .models import Ad, MainCategory, SubCategory
 from .forms import AdForm
 from django.template import TemplateDoesNotExist
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 class AdListView(ListView):
     model = Ad
@@ -96,15 +98,76 @@ def new_post_base(request):
         return render(request, '500.html', status=500)
 
 def post_home1(request):
-    post_type = request.GET.get('type', 'buy')
-    category = request.GET.get('category', '')
+    if request.method == 'POST':
+        # Сохраняем данные в сессии
+        request.session['post_data'] = {
+            'listing_purpose': request.POST.get('listing_purpose'),
+            'property_type': request.POST.get('property_type'),
+            'price': request.POST.get('price'),
+            'bedrooms': request.POST.get('bedrooms'),
+            'bathrooms': request.POST.get('bathrooms'),
+            'square_feet': request.POST.get('square_feet'),
+            'year_built': request.POST.get('year_built'),
+            'parking': request.POST.get('parking'),
+            'heating': request.POST.get('heating'),
+            'cooling': request.POST.get('cooling'),
+            'zip_code': request.POST.get('zip_code'),
+            'city': request.POST.get('city'),
+            'state': request.POST.get('state'),
+            'address': request.POST.get('address'),
+            'hide_address': request.POST.get('hide_address') == 'on',
+            'description': request.POST.get('description'),
+        }
+        
+        # Если это аренда, добавляем дополнительные поля
+        if request.POST.get('listing_purpose') == 'rent':
+            request.session['post_data'].update({
+                'availability_date': request.POST.get('availability_date'),
+                'lease_term': request.POST.get('lease_term'),
+            })
+        
+        return redirect('ads:post_home2')
     
+    # Если есть сохраненные данные, загружаем их
+    post_data = request.session.get('post_data', {})
+    return render(request, 'ads/new_post/post_home/post_home1.html', {'post_data': post_data})
+
+def post_home2(request):
+    # Проверяем, есть ли данные из первого шага
+    if 'post_data' not in request.session:
+        messages.error(request, 'Please complete the first step first')
+        return redirect('ads:post_home1')
+    
+    if request.method == 'POST':
+        # Обработка загрузки изображений
+        images = request.FILES.getlist('images')
+        if images:
+            # Сохраняем изображения в сессии только если они есть
+            request.session['post_images'] = [image.name for image in images]
+        return redirect('ads:post_home3')
+    
+    return render(request, 'ads/new_post/post_home/post_home2.html')
+
+def post_home3(request):
+    # Проверяем, есть ли данные из предыдущих шагов
+    if 'post_data' not in request.session or 'post_images' not in request.session:
+        messages.error(request, 'Please complete all previous steps first')
+        return redirect('ads:post_home1')
+    
+    if request.method == 'POST':
+        # Здесь будет логика сохранения объявления в базу данных
+        # После успешного сохранения очищаем сессию
+        request.session.pop('post_data', None)
+        request.session.pop('post_images', None)
+        messages.success(request, 'Your listing has been successfully posted!')
+        return redirect('ads:ad_list')  # Редирект на список объявлений
+    
+    # Подготавливаем данные для отображения
     context = {
-        'post_type': post_type,
-        'active_page': category
+        **request.session['post_data'],
+        'images': [{'url': f'/media/temp/{image}'} for image in request.session['post_images']]
     }
-    
-    return render(request, 'ads/new_post/post_home/post_home1.html', context)
+    return render(request, 'ads/new_post/post_home/post_home3.html', context)
 
 def load_sidebar(request):
     """View for loading sidebar content via AJAX"""

@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Review Listing - Abigon{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/post_main.css' %}">
+<style>
+    .review-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .review-section {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .review-section:last-child {
+        border-bottom: none;
+    }
+
+    .review-section h3 {
+        color: #495057;
+        margin-bottom: 1rem;
+    }
+
+    .review-item {
+        display: flex;
+        margin-bottom: 0.5rem;
+    }
+
+    .review-label {
+        font-weight: 600;
+        width: 150px;
+        color: #6c757d;
+    }
+
+    .review-value {
+        flex: 1;
+    }
+
+    .image-preview {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .image-preview img {
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+
+    .form-actions {
+        margin-top: 2rem;
+        text-align: right;
+    }
+
+    .btn-primary {
+        color: #fff;
+        background-color: #007bff;
+        border-color: #007bff;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+
+    .btn-primary:hover {
+        background-color: #0069d9;
+        border-color: #0062cc;
+    }
+
+    .btn-secondary {
+        color: #fff;
+        background-color: #6c757d;
+        border-color: #6c757d;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        margin-right: 1rem;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+    }
+
+    .price {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #28a745;
+    }
+
+    .description {
+        white-space: pre-wrap;
+        line-height: 1.5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="review-container">
+    <form method="post" class="review-form" id="reviewForm" action="{% url 'ads:post_home3' %}">
+        {% csrf_token %}
+
+        <!-- Basic Information -->
+        <div class="review-section">
+            <h3>Basic Information</h3>
+            <div class="review-item">
+                <div class="review-label">Listing Purpose:</div>
+                <div class="review-value">{{ listing_purpose|title }}</div>
+            </div>
+            <div class="review-item">
+                <div class="review-label">Property Type:</div>
+                <div class="review-value">{{ property_type|title }}</div>
+            </div>
+            <div class="review-item">
+                <div class="review-label">Price:</div>
+                <div class="review-value price">${{ price|floatformat:2 }}</div>
+            </div>
+        </div>
+
+        <!-- Property Details -->
+        <div class="review-section">
+            <h3>Property Details</h3>
+            <div class="review-item">
+                <div class="review-label">Bedrooms:</div>
+                <div class="review-value">{{ bedrooms }}</div>
+            </div>
+            <div class="review-item">
+                <div class="review-label">Bathrooms:</div>
+                <div class="review-value">{{ bathrooms }}</div>
+            </div>
+            <div class="review-item">
+                <div class="review-label">Square Feet:</div>
+                <div class="review-value">{{ square_feet }}</div>
+            </div>
+            <div class="review-item">
+                <div class="review-label">Year Built:</div>
+                <div class="review-value">{{ year_built }}</div>
+            </div>
+        </div>
+
+        <!-- Amenities -->
+        <div class="review-section">
+            <h3>Amenities</h3>
+            <div class="review-item">
+                <div class="review-label">Parking:</div>
+                <div class="review-value">{{ parking|title }}</div>
+            </div>
+            <div class="review-item">
+                <div class="review-label">Heating:</div>
+                <div class="review-value">{{ heating|title }}</div>
+            </div>
+            <div class="review-item">
+                <div class="review-label">Cooling:</div>
+                <div class="review-value">{{ cooling|title }}</div>
+            </div>
+        </div>
+
+        <!-- Location -->
+        <div class="review-section">
+            <h3>Location</h3>
+            <div class="review-item">
+                <div class="review-label">Address:</div>
+                <div class="review-value">
+                    {% if hide_address %}
+                    <span class="text-muted">Hidden from listings</span>
+                    {% else %}
+                    {{ address }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="review-item">
+                <div class="review-label">City:</div>
+                <div class="review-value">{{ city }}</div>
+            </div>
+            <div class="review-item">
+                <div class="review-label">State:</div>
+                <div class="review-value">{{ state }}</div>
+            </div>
+            <div class="review-item">
+                <div class="review-label">Zip Code:</div>
+                <div class="review-value">{{ zip_code }}</div>
+            </div>
+        </div>
+
+        <!-- Rent-specific Information -->
+        {% if listing_purpose == 'rent' %}
+        <div class="review-section">
+            <h3>Rental Information</h3>
+            <div class="review-item">
+                <div class="review-label">Availability Date:</div>
+                <div class="review-value">{{ availability_date }}</div>
+            </div>
+            <div class="review-item">
+                <div class="review-label">Lease Term:</div>
+                <div class="review-value">{{ lease_term|title }}</div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Description -->
+        <div class="review-section">
+            <h3>Description</h3>
+            <div class="description">{{ description }}</div>
+        </div>
+
+        <!-- Images -->
+        <div class="review-section">
+            <h3>Images</h3>
+            <div class="image-preview">
+                {% for image in images %}
+                <img src="{{ image.url }}" alt="Property image">
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="window.history.back()">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <button type="submit" class="btn btn-primary" name="submit_button">
+                Submit Listing <i class="fas fa-check"></i>
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Add any additional JavaScript functionality here
+    });
+</script>
+{% endblock %}

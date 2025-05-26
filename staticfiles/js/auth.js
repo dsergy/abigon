@@ -207,19 +207,16 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    // Add click handler to document with event delegation
-    document.addEventListener('click', function (e) {
-        // Check if clicked element or its parent has login-link class
-        const loginLink = e.target.closest('.login-link');
-        if (loginLink) {
-            handleLoginClick(e);
-        }
-    });
-
-    // Also try direct event listener on the button
+    // Add click handlers for login and post add buttons
     const loginButton = document.getElementById('loginButton');
+    const postAddButton = document.getElementById('postAddButton');
+
     if (loginButton) {
         loginButton.addEventListener('click', handleLoginClick);
+    }
+
+    if (postAddButton) {
+        postAddButton.addEventListener('click', handleLoginClick);
     }
 
     // Load registration form when modal is shown

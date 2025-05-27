@@ -136,6 +136,8 @@ class RealEstate(models.Model):
     )
 
     # Basic Information
+    title = models.CharField(_('Listing Title'), max_length=100)
+    description = models.TextField(_('Description'))
     listing_purpose = models.CharField(_('Listing Purpose'), max_length=10, choices=LISTING_PURPOSE_CHOICES)
     property_type = models.CharField(_('Property Type'), max_length=20, choices=PROPERTY_TYPE_CHOICES)
     price = models.DecimalField(_('Price'), max_digits=10, decimal_places=2)
@@ -161,6 +163,7 @@ class RealEstate(models.Model):
     
     # Rent specific
     availability_date = models.DateField(_('Availability Date'), null=True, blank=True)
+    lease_term = models.CharField(_('Lease Term'), max_length=50, null=True, blank=True)
     
     # Media
     images = models.ManyToManyField('RealEstateImage', verbose_name=_('Images'), blank=True)
@@ -168,6 +171,12 @@ class RealEstate(models.Model):
     # Relations
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='real_estates')
     status = models.ForeignKey(PostStatus, on_delete=models.PROTECT, verbose_name=_('Status'), default=1)
+    main_category = models.ForeignKey(MainCategory, on_delete=models.CASCADE, related_name='real_estates', null=True, blank=True)
+    sub_category = models.ForeignKey(SubCategory, on_delete=models.CASCADE, related_name='real_estates', null=True, blank=True)
+    
+    # SEO
+    slug = models.SlugField(_('Slug'), null=True, blank=True)
+    views = models.IntegerField(_('Views'), default=0)
     
     # Timestamps
     created_at = models.DateTimeField(_('Created At'), auto_now_add=True)
@@ -180,6 +189,14 @@ class RealEstate(models.Model):
 
     def __str__(self):
         return f"{self.get_property_type_display()} - {self.address}"
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse('ads:ad_detail', kwargs={'slug': self.slug})
 
 class RealEstateImage(models.Model):
     image = models.ImageField(_('Image'), upload_to='real_estate/%Y/%m/%d/')

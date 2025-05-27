@@ -226,22 +226,12 @@ def post_home3(request):
             timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
             unique_slug = f"{base_slug}-{timestamp}"
             
-            ad = Ad(
-                author=request.user,
-                title=post_data.get('title', ''),
-                description=post_data.get('description', ''),
-                price=post_data.get('price', 0),
-                status=status,
-                main_category=main_category,
-                sub_category=sub_category,
-                slug=unique_slug,
-            )
-            ad.save()
-            
             # Создаем объект недвижимости
             real_estate = RealEstate(
                 author=request.user,
                 status=status,
+                title=post_data.get('title', ''),
+                description=post_data.get('description', ''),
                 listing_purpose=post_data.get('listing_purpose'),
                 property_type=post_data.get('property_type'),
                 price=post_data.get('price', 0),
@@ -257,6 +247,9 @@ def post_home3(request):
                 state=post_data.get('state'),
                 zip_code=post_data.get('zip_code'),
                 hide_address=post_data.get('hide_address', False),
+                main_category=main_category,
+                sub_category=sub_category,
+                slug=unique_slug
             )
             if post_data.get('listing_purpose') == 'rent':
                 real_estate.availability_date = post_data.get('availability_date')

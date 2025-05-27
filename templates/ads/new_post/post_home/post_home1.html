@@ -3,6 +3,8 @@
 
 {% block title %}Post Real Estate - Abigon{% endblock %}
 
+{% with hide_address_checked=post_data.hide_address|yesno:"checked," %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/post_main.css' %}">
 <style>
@@ -54,28 +56,23 @@
     }
 
     .custom-control-input {
-        position: absolute;
-        z-index: -1;
-        opacity: 0;
+        position: relative !important;
+        z-index: 1 !important;
+        opacity: 1 !important;
+        cursor: pointer;
+    }
+
+    .custom-control-input:checked {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    .custom-control-input:focus {
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
     }
 
     .custom-control-label {
-        position: relative;
-        margin-bottom: 0;
-        vertical-align: top;
-    }
-
-    .custom-control-label::before {
-        position: absolute;
-        top: 0.25rem;
-        left: -1.5rem;
-        display: block;
-        width: 1rem;
-        height: 1rem;
-        pointer-events: none;
-        content: "";
-        background-color: #fff;
-        border: #adb5bd solid 1px;
+        cursor: pointer;
     }
 
     .form-actions {
@@ -115,21 +112,25 @@
 
 {% block content %}
 <div class="post-form-container">
-    <form method="post" class="post-form" id="postHomeForm" action="{% url 'ads:post_home1' %}">
+    <form method="post" class="post-form" id="postForm" action="{% url 'ads:post_home1' %}">
         {% csrf_token %}
 
+        <!-- Title -->
+        <div class="form-group mb-4">
+            <label for="title" class="form-label">Listing Title <span class="required">*</span> <span
+                    class="text-muted">(up to 20 words)</span></label>
+            <input type="text" class="form-control" id="title" name="title" value="{{ post_data.title|default:'' }}"
+                maxlength="100" required placeholder="Enter a descriptive title for your listing">
+            <div class="form-text">Make your listing stand out with a clear, descriptive title</div>
+        </div>
+
         <!-- Listing Purpose -->
-        <div class="form-group">
-            <label for="listing_purpose">Listing Purpose <span class="required">*</span></label>
-            <select name="listing_purpose" id="listing_purpose" class="form-control" required onchange="document.getElementById('property_type').innerHTML = this.value === 'sale' ? 
-                    '<option value=\'\'>Select property type</option><option value=\'houses\'>Houses</option><option value=\'apartments\'>Apartments</option><option value=\'commercial\'>Commercial</option><option value=\'other\'>Other</option>' : 
-                    this.value === 'rent' ? 
-                    '<option value=\'\'>Select property type</option><option value=\'houses\'>Houses</option><option value=\'apartments\'>Apartments</option><option value=\'rooms\'>Rooms</option><option value=\'commercial\'>Commercial</option><option value=\'other\'>Other</option>' : 
-                    '<option value=\'\'>Select property type</option>';
-                    toggleRentFields(this.value);">
+        <div class="form-group mb-4">
+            <label for="listing_purpose" class="form-label">Listing Purpose <span class="required">*</span></label>
+            <select class="form-select" id="listing_purpose" name="listing_purpose" required>
                 <option value="">Select purpose</option>
-                <option value="sale">Sale</option>
-                <option value="rent">Rent</option>
+                <option value="buy" {% if is_buy %}selected{% endif %}>Buy</option>
+                <option value="rent" {% if is_rent %}selected{% endif %}>Rent</option>
             </select>
         </div>
 
@@ -235,7 +236,8 @@
 
         <div class="form-group">
             <div class="custom-control custom-checkbox">
-                <input type="checkbox" name="hide_address" id="hide_address" class="custom-control-input">
+                <input type="checkbox" name="hide_address" id="hide_address" class="custom-control-input"
+                    data-initial-state="{% if post_data.hide_address %}true{% else %}false{% endif %}">
                 <label class="custom-control-label" for="hide_address">Hide address from listings</label>
             </div>
         </div>
@@ -279,8 +281,19 @@
 
 {% block extra_js %}
 <script>
-    // Simple ZIP code functionality embedded
     document.addEventListener('DOMContentLoaded', function () {
+        // Set initial state of hide_address checkbox
+        const hideAddressCheckbox = document.getElementById('hide_address');
+        if (hideAddressCheckbox) {
+            hideAddressCheckbox.checked = hideAddressCheckbox.dataset.initialState === 'true';
+
+            // Add click handler
+            hideAddressCheckbox.addEventListener('change', function () {
+                console.log('Checkbox changed:', this.checked);
+            });
+        }
+
+        // ZIP code functionality
         const zipInput = document.getElementById('zip_code');
         const cityInput = document.getElementById('city');
         const stateInput = document.getElementById('state');
@@ -334,6 +347,50 @@
             }
         }
 
+        // Property Types functionality
+        const propertyTypes = {
+            'buy': [
+                { value: 'house', label: 'House' },
+                { value: 'apartment', label: 'Apartment' },
+                { value: 'townhouse', label: 'Townhouse' },
+                { value: 'commercial', label: 'Commercial' },
+                { value: 'other', label: 'Other' }
+            ],
+            'rent': [
+                { value: 'house', label: 'House' },
+                { value: 'apartment', label: 'Apartment' },
+                { value: 'townhouse', label: 'Townhouse' },
+                { value: 'room', label: 'Room' },
+                { value: 'commercial', label: 'Commercial' },
+                { value: 'other', label: 'Other' }
+            ]
+        };
+
+        const listingPurposeSelect = document.getElementById('listing_purpose');
+        const propertyTypeSelect = document.getElementById('property_type');
+
+        function updatePropertyTypes() {
+            const purpose = listingPurposeSelect.value;
+            propertyTypeSelect.innerHTML = '<option value="">Select property type</option>';
+
+            if (purpose && propertyTypes[purpose]) {
+                propertyTypes[purpose].forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type.value;
+                    option.textContent = type.label;
+                    propertyTypeSelect.appendChild(option);
+                });
+            }
+        }
+
+        // Update property types when listing purpose changes
+        listingPurposeSelect.addEventListener('change', updatePropertyTypes);
+
+        // Initial update if a purpose is already selected
+        if (listingPurposeSelect.value) {
+            updatePropertyTypes();
+        }
+
         // Function to toggle rent-specific fields
         window.toggleRentFields = function (purpose) {
             const rentFields = document.getElementById('rentFields');
@@ -380,6 +437,15 @@
                 wordCountElement.textContent = maxWords - words.length;
             }
         };
+
+        const form = document.getElementById('postForm');
+        form.addEventListener('submit', function (e) {
+            console.log('Form submitted');
+            console.log('Form action:', this.action);
+            console.log('Form method:', this.method);
+            console.log('Form data:', new FormData(this));
+        });
     });
 </script>
 {% endblock %}
+{% endwith %}

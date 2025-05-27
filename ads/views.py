@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
-from .models import Ad, MainCategory, SubCategory, PostStatus
+from .models import Ad, MainCategory, SubCategory, PostStatus, RealEstate
 from .forms import AdForm
 from django.template import TemplateDoesNotExist
 from django.contrib.auth.decorators import login_required
@@ -12,6 +12,8 @@ from django.contrib import messages
 from .mixins import ImageUploadMixin
 from django.core.exceptions import ValidationError
 import logging
+from django.utils.text import slugify
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -104,9 +106,15 @@ def new_post_base(request):
         return render(request, '500.html', status=500)
 
 def post_home1(request):
+    print("Method:", request.method)  # Debug print
+    print("Session:", request.session)  # Debug print
+    
     if request.method == 'POST':
+        print("POST data received:", request.POST)  # Debug print
+        
         # Сохраняем данные в сессии
         request.session['post_data'] = {
+            'title': request.POST.get('title'),
             'listing_purpose': request.POST.get('listing_purpose'),
             'property_type': request.POST.get('property_type'),
             'price': request.POST.get('price'),
@@ -125,6 +133,8 @@ def post_home1(request):
             'description': request.POST.get('description'),
         }
         
+        print("Session data saved:", request.session['post_data'])  # Debug print
+        
         # Если это аренда, добавляем дополнительные поля
         if request.POST.get('listing_purpose') == 'rent':
             request.session['post_data'].update({
@@ -132,11 +142,21 @@ def post_home1(request):
                 'lease_term': request.POST.get('lease_term'),
             })
         
+        print("Redirecting to post_home2")  # Debug print
         return redirect('ads:post_home2')
     
     # Если есть сохраненные данные, загружаем их
     post_data = request.session.get('post_data', {})
-    return render(request, 'ads/new_post/post_home/post_home1.html', {'post_data': post_data})
+    print("Loading saved data:", post_data)  # Debug print
+    
+    # Добавляем булевы флаги для сравнения
+    context = {
+        'post_data': post_data,
+        'is_buy': post_data.get('listing_purpose') == 'buy',
+        'is_rent': post_data.get('listing_purpose') == 'rent'
+    }
+    
+    return render(request, 'ads/new_post/post_home/post_home1.html', context)
 
 def post_home2(request):
     # Проверяем, есть ли данные из первого шага
@@ -145,18 +165,22 @@ def post_home2(request):
         return redirect('ads:post_home1')
     
     if request.method == 'POST':
+        # Если нажата кнопка Back, возвращаемся на post_home1
+        if 'back_button' in request.POST:
+            return redirect('ads:post_home1')
+            
+        # Проверяем, что нажата кнопка Next
+        if 'next_button_home2' not in request.POST:
+            messages.error(request, 'Invalid form submission')
+            return redirect('ads:post_home2')
+            
         try:
             # Обработка загрузки изображений
             images = ImageUploadMixin().handle_image_upload(request)
-            if images:
-                request.session['post_images'] = images
-                logger.info(f"Successfully processed {len(images)} images")
-                return redirect('ads:post_home3')
-            else:
-                messages.warning(request, 'No images were uploaded')
-                return render(request, 'ads/new_post/post_home/post_home2.html', {
-                    'form': ImageUploadMixin().get_image_form()
-                })
+            # Сохраняем изображения в сессии, даже если их нет
+            request.session['post_images'] = images or []
+            logger.info(f"Successfully processed {len(images)} images")
+            return redirect('ads:post_home3')
         except ValidationError as e:
             logger.error(f"Validation error in post_home2: {str(e)}")
             messages.error(request, str(e))
@@ -179,18 +203,117 @@ def post_home3(request):
         return redirect('ads:post_home1')
     
     if request.method == 'POST':
-        # Здесь будет логика сохранения объявления в базу данных
-        # После успешного сохранения очищаем сессию
-        request.session.pop('post_data', None)
-        request.session.pop('post_images', None)
-        messages.success(request, 'Your listing has been successfully posted!')
-        return redirect('ads:ad_list')  # Редирект на список объявлений
+        action = request.POST.get('action')
+        post_data = request.session['post_data']
+        post_images = request.session['post_images']
+        try:
+            status_name = 'review' if action == 'review' else 'draft'
+            status = PostStatus.objects.get(name=status_name)
+            
+            # Получаем категории для недвижимости
+            main_category = MainCategory.objects.get(slug='real-estate')
+            # Определяем подкатегорию на основе типа недвижимости
+            property_type = post_data.get('property_type', '')
+            if property_type in ['houses', 'apartments', 'rooms']:
+                sub_category = SubCategory.objects.get(slug='residential')
+            elif property_type == 'commercial':
+                sub_category = SubCategory.objects.get(slug='commercial')
+            else:
+                sub_category = SubCategory.objects.get(slug='land')
+            
+            # Генерируем уникальный slug
+            base_slug = slugify(post_data.get('title', ''))
+            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+            unique_slug = f"{base_slug}-{timestamp}"
+            
+            ad = Ad(
+                author=request.user,
+                title=post_data.get('title', ''),
+                description=post_data.get('description', ''),
+                price=post_data.get('price', 0),
+                status=status,
+                main_category=main_category,
+                sub_category=sub_category,
+                slug=unique_slug,
+            )
+            ad.save()
+            
+            # Создаем объект недвижимости
+            real_estate = RealEstate(
+                author=request.user,
+                status=status,
+                listing_purpose=post_data.get('listing_purpose'),
+                property_type=post_data.get('property_type'),
+                price=post_data.get('price', 0),
+                bedrooms=post_data.get('bedrooms'),
+                bathrooms=post_data.get('bathrooms'),
+                square_feet=post_data.get('square_feet'),
+                year_built=post_data.get('year_built'),
+                parking=post_data.get('parking'),
+                heating=post_data.get('heating'),
+                cooling=post_data.get('cooling'),
+                address=post_data.get('address'),
+                city=post_data.get('city'),
+                state=post_data.get('state'),
+                zip_code=post_data.get('zip_code'),
+                hide_address=post_data.get('hide_address', False),
+            )
+            if post_data.get('listing_purpose') == 'rent':
+                real_estate.availability_date = post_data.get('availability_date')
+                real_estate.lease_term = post_data.get('lease_term')
+            real_estate.save()
+            
+            # Сохраняем изображения
+            for image_data in post_images:
+                real_estate.images.create(image=image_data['path'])
+            
+            request.session.pop('post_data', None)
+            request.session.pop('post_images', None)
+            
+            if action == 'review':
+                messages.success(request, 'Your listing has been submitted for review!')
+            else:
+                messages.success(request, 'Your listing has been saved as draft.')
+            
+            return redirect('ads:ad_list')
+        except PostStatus.DoesNotExist:
+            messages.error(request, f'Status "{status_name}" does not exist. Please contact support.')
+            return redirect('ads:post_home1')
+        except MainCategory.DoesNotExist:
+            messages.error(request, 'Real Estate category not found. Please contact support.')
+            return redirect('ads:post_home1')
+        except SubCategory.DoesNotExist:
+            messages.error(request, 'Property category not found. Please contact support.')
+            return redirect('ads:post_home1')
     
     # Подготавливаем данные для отображения
     context = {
-        **request.session['post_data'],
+        'title': request.session['post_data'].get('title', ''),
+        'description': request.session['post_data'].get('description', ''),
+        'price': request.session['post_data'].get('price', ''),
+        'property_type': request.session['post_data'].get('property_type', ''),
+        'listing_purpose': request.session['post_data'].get('listing_purpose', ''),
+        'bedrooms': request.session['post_data'].get('bedrooms', ''),
+        'bathrooms': request.session['post_data'].get('bathrooms', ''),
+        'square_feet': request.session['post_data'].get('square_feet', ''),
+        'year_built': request.session['post_data'].get('year_built', ''),
+        'parking': request.session['post_data'].get('parking', ''),
+        'heating': request.session['post_data'].get('heating', ''),
+        'cooling': request.session['post_data'].get('cooling', ''),
+        'address': request.session['post_data'].get('address', ''),
+        'city': request.session['post_data'].get('city', ''),
+        'state': request.session['post_data'].get('state', ''),
+        'zip_code': request.session['post_data'].get('zip_code', ''),
+        'hide_address': request.session['post_data'].get('hide_address', False),
         'images': [{'url': f'/media/{image["path"]}'} for image in request.session['post_images']]
     }
+    
+    if request.session['post_data'].get('listing_purpose') == 'rent':
+        context.update({
+            'availability_date': request.session['post_data'].get('availability_date', ''),
+            'lease_term': request.session['post_data'].get('lease_term', '')
+        })
+    
     return render(request, 'ads/new_post/post_home/post_home3.html', context)
 
 def load_sidebar(request):

@@ -119,6 +119,10 @@
         <div class="review-section">
             <h3>Basic Information</h3>
             <div class="review-item">
+                <div class="review-label">Listing Title:</div>
+                <div class="review-value">{{ title }}</div>
+            </div>
+            <div class="review-item">
                 <div class="review-label">Listing Purpose:</div>
                 <div class="review-value">{{ listing_purpose|title }}</div>
             </div>
@@ -228,13 +232,16 @@
             </div>
         </div>
 
-        <!-- Submit Buttons -->
+        <!-- Form Actions -->
         <div class="form-actions">
             <button type="button" class="btn btn-secondary" onclick="window.history.back()">
                 <i class="fas fa-arrow-left"></i> Back
             </button>
-            <button type="submit" class="btn btn-primary" name="submit_button">
-                Submit Listing <i class="fas fa-check"></i>
+            <button type="submit" name="action" value="draft" class="btn btn-secondary">
+                <i class="fas fa-save"></i> Save Draft
+            </button>
+            <button type="submit" name="action" value="review" class="btn btn-primary">
+                <i class="fas fa-check"></i> Submit Listing
             </button>
         </div>
     </form>

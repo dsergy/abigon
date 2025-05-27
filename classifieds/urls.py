@@ -33,9 +33,9 @@ urlpatterns = [
     path('ads/', include('ads.urls')),  # Изменено с '' на 'ads/'
     path('services/', services, name='services'),
     path('events/', events, name='events'),
-]
+]  
 
 # Serve static and media files in development
-if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+if settings.DEBUG:  
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)  
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

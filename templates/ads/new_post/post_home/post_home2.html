@@ -155,10 +155,10 @@
         </div>
 
         <div class="form-actions">
-            <button type="button" class="btn btn-secondary" onclick="window.history.back()">
+            <button type="submit" class="btn btn-secondary" name="back_button" formaction="{% url 'ads:post_home1' %}">
                 <i class="fas fa-arrow-left"></i> Back
             </button>
-            <button type="submit" class="btn btn-primary" name="next_button">
+            <button type="submit" class="btn btn-primary" name="next_button_home2">
                 Next <i class="fas fa-arrow-right"></i>
             </button>
         </div>
@@ -172,6 +172,7 @@
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const previewContainer = document.getElementById('previewContainer');
+        const form = document.getElementById('postHomeForm');
         const maxFiles = 10;
         const maxFileSize = 4 * 1024 * 1024; // 4MB
         let currentFiles = new DataTransfer();
@@ -199,6 +200,12 @@
             e.preventDefault();
             dropZone.classList.remove('dragover');
             handleFiles({ target: { files: e.dataTransfer.files } });
+            updateFileInput();
+        });
+
+        // Handle form submission
+        form.addEventListener('submit', function (e) {
+            // Обновляем файловый инпут
             updateFileInput();
         });
 

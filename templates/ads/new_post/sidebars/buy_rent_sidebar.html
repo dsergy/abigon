@@ -54,15 +54,15 @@
     <p class="post-main-description">Choose the category you want to post</p>
 
     <div class="category-buttons">
-        <a href="{% url 'ads:post_home1' %}?type=buy&category=real_estate" class="category-button">
+        <a href="{% url 'ads:post_step' post_type='buy' step=1 %}?category=real_estate" class="category-button">
             <i class="fas fa-building"></i>
             <span>Real Estate</span>
         </a>
-        <a href="{% url 'ads:post_home1' %}?type=buy&category=vehicles" class="category-button">
+        <a href="{% url 'ads:post_step' post_type='buy' step=1 %}?category=vehicles" class="category-button">
             <i class="fas fa-car"></i>
             <span>Vehicles</span>
         </a>
-        <a href="{% url 'ads:post_home1' %}?type=buy&category=electronics" class="category-button">
+        <a href="{% url 'ads:post_step' post_type='buy' step=1 %}?category=electronics" class="category-button">
             <i class="fas fa-laptop"></i>
             <span>Electronics</span>
         </a>

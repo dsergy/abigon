@@ -71,22 +71,17 @@ class PostStatus(models.Model):
         return self.get_name_display()
 
 class Ad(models.Model):
-    title = models.CharField(_('Title'), max_length=200)
-    slug = models.SlugField(_('Slug'), unique=True)
-    description = models.TextField(_('Description'))
-    price = models.DecimalField(_('Price'), max_digits=10, decimal_places=2)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    title = models.CharField(max_length=100, verbose_name="Listing Title")
+    description = models.TextField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.ForeignKey(PostStatus, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    views = models.IntegerField(default=0)
     main_category = models.ForeignKey(MainCategory, on_delete=models.CASCADE, related_name='ads')
     sub_category = models.ForeignKey(SubCategory, on_delete=models.CASCADE, related_name='ads')
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ads')
-    status = models.ForeignKey(
-        PostStatus,
-        on_delete=models.PROTECT,
-        verbose_name=_('Status'),
-        default=1  # Default to 'draft'
-    )
-    views = models.PositiveIntegerField(_('Views'), default=0)
-    created_at = models.DateTimeField(_('Created At'), auto_now_add=True)
-    updated_at = models.DateTimeField(_('Updated At'), auto_now=True)
+    slug = models.SlugField(_('Slug'), unique=True)
 
     class Meta:
         verbose_name = _('Ad')

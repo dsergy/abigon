@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Review Vehicle Post - Abigon{% endblock %}
+{% block title %}Post Vehicle - Abigon{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/post_main.css' %}">
@@ -15,69 +15,58 @@
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
-    .review-section {
-        margin-bottom: 2rem;
-        padding: 1.5rem;
-        background-color: #f8f9fa;
-        border-radius: 8px;
+    .form-group {
+        margin-bottom: 1.5rem;
     }
 
-    .review-section h3 {
-        margin-bottom: 1rem;
-        color: #333;
-        font-size: 1.2rem;
+    .required {
+        color: #dc3545;
     }
 
-    .review-item {
-        margin-bottom: 1rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid #dee2e6;
-    }
-
-    .review-item:last-child {
-        border-bottom: none;
-        margin-bottom: 0;
-        padding-bottom: 0;
-    }
-
-    .review-label {
-        font-weight: 600;
-        color: #495057;
-        margin-bottom: 0.25rem;
-    }
-
-    .review-value {
-        color: #212529;
-    }
-
-    .image-preview {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 1rem;
-        margin-top: 1rem;
-    }
-
-    .image-preview img {
+    .form-control {
+        display: block;
         width: 100%;
-        height: 150px;
-        object-fit: cover;
-        border-radius: 4px;
+        padding: 0.5rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .form-control:focus {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    .form-control[readonly] {
+        background-color: #e9ecef;
     }
 
     .form-actions {
         margin-top: 2rem;
         text-align: right;
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        border: 1px solid transparent;
     }
 
     .btn-primary {
         color: #fff;
         background-color: #007bff;
         border-color: #007bff;
-        padding: 0.5rem 1rem;
-        font-size: 1rem;
-        line-height: 1.5;
-        border-radius: 0.25rem;
-        cursor: pointer;
     }
 
     .btn-primary:hover {
@@ -89,17 +78,155 @@
         color: #fff;
         background-color: #6c757d;
         border-color: #6c757d;
-        padding: 0.5rem 1rem;
-        font-size: 1rem;
-        line-height: 1.5;
-        border-radius: 0.25rem;
-        cursor: pointer;
-        margin-right: 1rem;
     }
 
     .btn-secondary:hover {
         background-color: #5a6268;
         border-color: #545b62;
+    }
+
+    .btn-success {
+        color: #fff;
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+
+    .btn-success:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+    }
+
+    .short-input {
+        width: 120px !important;
+    }
+
+    .location-group {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .location-group .form-group {
+        flex: 1;
+    }
+
+    .location-group .zip-group {
+        width: 120px;
+    }
+
+    /* Custom color select styles */
+    .custom-color-select {
+        position: relative;
+        width: 100%;
+    }
+
+    .color-select-header {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        cursor: pointer;
+        background: white;
+    }
+
+    .color-select-header.selected {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .color-select-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        margin-top: 4px;
+        max-height: 300px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+    }
+
+    .color-select-dropdown.show {
+        display: block;
+    }
+
+    .color-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        cursor: pointer;
+    }
+
+    .color-option:hover {
+        background-color: #f8f9fa;
+    }
+
+    .color-square {
+        width: 20px;
+        height: 20px;
+        border: 1px solid #ccc;
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    /* Color values */
+    .color-black {
+        background-color: #000000;
+    }
+
+    .color-white {
+        background-color: #FFFFFF;
+        border: 1px solid #ccc;
+    }
+
+    .color-silver {
+        background-color: #C0C0C0;
+    }
+
+    .color-gray {
+        background-color: #808080;
+    }
+
+    .color-red {
+        background-color: #FF0000;
+    }
+
+    .color-blue {
+        background-color: #0000FF;
+    }
+
+    .color-green {
+        background-color: #008000;
+    }
+
+    .color-yellow {
+        background-color: #FFFF00;
+    }
+
+    .color-orange {
+        background-color: #FFA500;
+    }
+
+    .color-purple {
+        background-color: #800080;
+    }
+
+    .color-brown {
+        background-color: #A52A2A;
+    }
+
+    .color-beige {
+        background-color: #F5F5DC;
+    }
+
+    .color-gold {
+        background-color: #FFD700;
     }
 </style>
 {% endblock %}
@@ -109,64 +236,434 @@
     <form method="post" class="post-form" id="postVehiclesForm" action="{% url 'ads:post_vehicles3' %}">
         {% csrf_token %}
 
-        <div class="review-section">
-            <h3>Vehicle Details</h3>
-            <div class="review-item">
-                <div class="review-label">Listing Purpose</div>
-                <div class="review-value">{{ form_data.listing_purpose }}</div>
-            </div>
-            <div class="review-item">
-                <div class="review-label">Vehicle Type</div>
-                <div class="review-value">{{ form_data.vehicle_type }}</div>
-            </div>
-            <div class="review-item">
-                <div class="review-label">Make</div>
-                <div class="review-value">{{ form_data.make }}</div>
-            </div>
-            <div class="review-item">
-                <div class="review-label">Model</div>
-                <div class="review-value">{{ form_data.model }}</div>
-            </div>
-            <div class="review-item">
-                <div class="review-label">Year</div>
-                <div class="review-value">{{ form_data.year }}</div>
-            </div>
-            <div class="review-item">
-                <div class="review-label">Price</div>
-                <div class="review-value">${{ form_data.price }}</div>
-            </div>
-            <div class="review-item">
-                <div class="review-label">Location</div>
-                <div class="review-value">{{ form_data.location }}</div>
-            </div>
-            <div class="review-item">
-                <div class="review-label">Additional Details</div>
-                <div class="review-value">{{ form_data.additional_details }}</div>
-            </div>
-            <div class="review-item">
-                <div class="review-label">Description</div>
-                <div class="review-value">{{ form_data.description }}</div>
+        <!-- Listing Purpose -->
+        <div class="form-group mb-4">
+            <label for="listing_purpose" class="form-label">Listing Purpose <span class="required">*</span></label>
+            <select class="form-select" id="listing_purpose" name="listing_purpose" required>
+                <option value="">Select purpose</option>
+                <option value="sell" {% if is_sell %}selected{% endif %}>Sell</option>
+                <option value="rent" {% if is_rent %}selected{% endif %}>Rent</option>
+            </select>
+        </div>
+
+        <!-- Vehicle Type -->
+        <div class="form-group">
+            <label for="vehicle_type">Vehicle Type <span class="required">*</span></label>
+            <select name="vehicle_type" id="vehicle_type" class="form-control" required>
+                <option value="">Select vehicle type</option>
+                <option value="sedan" {% if is_sedan %}selected{% endif %}>Sedan</option>
+                <option value="suv" {% if is_suv %}selected{% endif %}>SUV</option>
+                <option value="pickup" {% if is_pickup %}selected{% endif %}>Pickup</option>
+                <option value="van" {% if is_van %}selected{% endif %}>Van</option>
+                <option value="coupe" {% if is_coupe %}selected{% endif %}>Coupe</option>
+                <option value="wagon" {% if is_wagon %}selected{% endif %}>Wagon</option>
+                <option value="convertible" {% if is_convertible %}selected{% endif %}>Convertible</option>
+            </select>
+        </div>
+
+        <!-- Make and Model -->
+        <div class="form-group">
+            <label for="make">Make <span class="required">*</span></label>
+            <div class="d-flex gap-2 align-items-start">
+                <select name="make" id="make" class="form-control" required style="width: 200px;">
+                    <option value="">Select make</option>
+                </select>
+                <input type="text" name="other_make" id="other_make" class="form-control" placeholder="Other make"
+                    style="width: 200px;" disabled>
             </div>
         </div>
 
-        <div class="review-section">
-            <h3>Images</h3>
-            <div class="image-preview">
-                {% for image in form_data.images %}
-                <img src="{{ image.url }}" alt="Vehicle image">
-                {% endfor %}
+        <div class="form-group">
+            <label for="model">Model <span class="required">*</span></label>
+            <select name="model" id="model" class="form-control" required disabled>
+                <option value="">Select model</option>
+            </select>
+        </div>
+
+        <!-- Year -->
+        <div class="form-group">
+            <label for="year">Year <span class="required">*</span></label>
+            <select name="year" id="year" class="form-control" required>
+                <option value="">Select year</option>
+            </select>
+        </div>
+
+        <!-- Mileage -->
+        <div class="form-group">
+            <label for="mileage">Mileage <span class="required">*</span></label>
+            <div class="input-group">
+                <input type="number" name="mileage" id="mileage" class="form-control" required min="0" max="10000000"
+                    oninput="validatePositiveNumber(this, 8)" placeholder="Enter mileage">
+                <div class="input-group-append">
+                    <span class="input-group-text">miles</span>
+                </div>
             </div>
+        </div>
+
+        <!-- Transmission -->
+        <div class="form-group">
+            <label for="transmission">Transmission <span class="required">*</span></label>
+            <select name="transmission" id="transmission" class="form-control" required>
+                <option value="">Select transmission</option>
+                <option value="automatic">Automatic</option>
+                <option value="manual">Manual</option>
+            </select>
+        </div>
+
+        <!-- Fuel Type -->
+        <div class="form-group">
+            <label for="fuel_type">Fuel Type <span class="required">*</span></label>
+            <select name="fuel_type" id="fuel_type" class="form-control" required>
+                <option value="">Select fuel type</option>
+                <option value="gasoline">Gasoline</option>
+                <option value="diesel">Diesel</option>
+                <option value="electric">Electric</option>
+                <option value="hybrid">Hybrid</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+
+        <!-- Color -->
+        <div class="form-group">
+            <label for="color">Color <span class="required">*</span></label>
+            <div class="custom-color-select">
+                <input type="hidden" name="color" id="color" required>
+                <div class="color-select-header">
+                    <span>Select color</span>
+                </div>
+                <div class="color-select-dropdown">
+                    <div class="color-option" data-value="black">
+                        <span class="color-square color-black"></span>
+                        <span>Black</span>
+                    </div>
+                    <div class="color-option" data-value="white">
+                        <span class="color-square color-white"></span>
+                        <span>White</span>
+                    </div>
+                    <div class="color-option" data-value="silver">
+                        <span class="color-square color-silver"></span>
+                        <span>Silver</span>
+                    </div>
+                    <div class="color-option" data-value="gray">
+                        <span class="color-square color-gray"></span>
+                        <span>Gray</span>
+                    </div>
+                    <div class="color-option" data-value="red">
+                        <span class="color-square color-red"></span>
+                        <span>Red</span>
+                    </div>
+                    <div class="color-option" data-value="blue">
+                        <span class="color-square color-blue"></span>
+                        <span>Blue</span>
+                    </div>
+                    <div class="color-option" data-value="green">
+                        <span class="color-square color-green"></span>
+                        <span>Green</span>
+                    </div>
+                    <div class="color-option" data-value="yellow">
+                        <span class="color-square color-yellow"></span>
+                        <span>Yellow</span>
+                    </div>
+                    <div class="color-option" data-value="orange">
+                        <span class="color-square color-orange"></span>
+                        <span>Orange</span>
+                    </div>
+                    <div class="color-option" data-value="purple">
+                        <span class="color-square color-purple"></span>
+                        <span>Purple</span>
+                    </div>
+                    <div class="color-option" data-value="brown">
+                        <span class="color-square color-brown"></span>
+                        <span>Brown</span>
+                    </div>
+                    <div class="color-option" data-value="beige">
+                        <span class="color-square color-beige"></span>
+                        <span>Beige</span>
+                    </div>
+                    <div class="color-option" data-value="gold">
+                        <span class="color-square color-gold"></span>
+                        <span>Gold</span>
+                    </div>
+                    <div class="color-option" data-value="other">
+                        <span>Other</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Other Color -->
+        <div class="form-group" id="otherColorGroup" style="display: none;">
+            <label for="other_color">Other Color</label>
+            <input type="text" name="other_color" id="other_color" class="form-control"
+                placeholder="Specify other color">
+        </div>
+
+        <!-- VIN -->
+        <div class="form-group">
+            <label for="vin">VIN Code</label>
+            <input type="text" name="vin" id="vin" class="form-control" maxlength="17"
+                placeholder="Enter 17-character VIN code">
+        </div>
+
+        <!-- Price -->
+        <div class="form-group">
+            <label for="price">Price <span class="required">*</span></label>
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">$</span>
+                </div>
+                <input type="number" name="price" id="price" class="form-control" required min="0" max="999999999"
+                    step="0.01" value="{{ vehicle_data.price|default:'' }}" oninput="validatePositiveNumber(this, 9)">
+            </div>
+        </div>
+
+        <!-- Location -->
+        <div class="form-group">
+            <label for="zip_code">Zip Code <span class="required">*</span></label>
+            <input type="text" name="zip_code" id="zip_code" class="form-control" pattern="[0-9]{5}" maxlength="5"
+                required placeholder="Enter 5-digit zip code" value="{{ vehicle_data.zip_code|default:'' }}">
+        </div>
+
+        <div class="form-group">
+            <label for="city">City</label>
+            <input type="text" name="city" id="city" class="form-control" readonly
+                value="{{ vehicle_data.city|default:'' }}">
+        </div>
+
+        <div class="form-group">
+            <label for="state">State</label>
+            <input type="text" name="state" id="state" class="form-control" readonly
+                value="{{ vehicle_data.state|default:'' }}">
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+            <label for="description">Description <span class="required">*</span></label>
+            <textarea name="description" id="description" class="form-control" rows="5" required
+                placeholder="Provide a detailed description of your vehicle">{{ vehicle_data.description|default:'' }}</textarea>
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn btn-secondary" name="back_button"
-                formaction="{% url 'ads:post_vehicles2' %}">
-                <i class="fas fa-arrow-left"></i> Back
+            <button type="button" class="btn btn-success" id="saveDraftBtn">
+                <i class="fas fa-save"></i> Save Draft
             </button>
-            <button type="submit" class="btn btn-primary" name="submit_button">
-                Submit Post <i class="fas fa-check"></i>
+            <button type="submit" class="btn btn-primary">
+                Next <i class="fas fa-arrow-right"></i>
             </button>
         </div>
     </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/zip_code_handler.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let carModelsData = null;
+
+        // Load car makes and models from JSON files
+        Promise.all([
+            fetch('/static/data/car5_25.json').then(response => response.json()),
+            fetch('/static/data/car_models_by_make.json').then(response => response.json())
+        ])
+            .then(([makesData, modelsData]) => {
+                carModelsData = modelsData;
+                const makeSelect = document.getElementById('make');
+                const otherMakeInput = document.getElementById('other_make');
+
+                if (makeSelect) {
+                    // Clear existing options except the first one
+                    makeSelect.innerHTML = '<option value="">Select make</option>';
+
+                    // Add options from JSON
+                    makesData.MakeName.forEach(make => {
+                        const option = document.createElement('option');
+                        option.value = make;
+                        option.textContent = make;
+                        makeSelect.appendChild(option);
+                    });
+
+                    // Add "Other" option at the end
+                    const otherOption = document.createElement('option');
+                    otherOption.value = 'other';
+                    otherOption.textContent = 'Other';
+                    makeSelect.appendChild(otherOption);
+
+                    // Add change event listener to make select
+                    makeSelect.addEventListener('change', function () {
+                        const modelSelect = document.getElementById('model');
+                        const selectedMake = this.value;
+
+                        // Handle other make input
+                        if (selectedMake === 'other') {
+                            otherMakeInput.disabled = false;
+                            otherMakeInput.required = true;
+                        } else {
+                            otherMakeInput.disabled = true;
+                            otherMakeInput.required = false;
+                            otherMakeInput.value = '';
+                        }
+
+                        // Clear and disable model select if no make is selected
+                        modelSelect.innerHTML = '<option value="">Select model</option>';
+                        modelSelect.disabled = !selectedMake || selectedMake === 'other';
+
+                        if (selectedMake && selectedMake !== 'other') {
+                            // Find the selected make in the models data
+                            const makeData = carModelsData.makes.find(m => m.make_name === selectedMake);
+                            if (makeData) {
+                                // Add model options
+                                makeData.models.forEach(model => {
+                                    const option = document.createElement('option');
+                                    option.value = model;
+                                    option.textContent = model;
+                                    modelSelect.appendChild(option);
+                                });
+                                modelSelect.disabled = false;
+                            }
+                        }
+                    });
+                }
+            })
+            .catch(error => console.error('Error loading car data:', error));
+
+        // Populate year dropdown
+        const yearSelect = document.getElementById('year');
+        const currentYear = new Date().getFullYear();
+        const startYear = 1900;
+
+        for (let year = currentYear; year >= startYear; year--) {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            if (year === parseInt('{{ vehicle_data.year|default:"" }}')) {
+                option.selected = true;
+            }
+            yearSelect.appendChild(option);
+        }
+
+        // Initialize ZIP code handling
+        const zipInput = document.getElementById('zip_code');
+        const cityInput = document.getElementById('city');
+        const stateInput = document.getElementById('state');
+
+        if (zipInput) {
+            zipInput.addEventListener('input', function () {
+                this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);
+            });
+
+            zipInput.addEventListener('blur', function () {
+                const zipCode = this.value;
+                if (zipCode.length === 5) {
+                    ZipCodeHandler.fetchLocationDataDebounced(zipCode, function (locationData) {
+                        if (locationData) {
+                            cityInput.value = locationData.city;
+                            stateInput.value = locationData.state;
+                        } else {
+                            cityInput.value = '';
+                            stateInput.value = '';
+                            alert('Invalid ZIP code');
+                        }
+                    });
+                }
+            });
+        }
+
+        // Custom color select handling
+        const colorSelect = document.querySelector('.custom-color-select');
+        const colorInput = document.getElementById('color');
+        const colorHeader = colorSelect.querySelector('.color-select-header');
+        const colorDropdown = colorSelect.querySelector('.color-select-dropdown');
+        const colorOptions = colorSelect.querySelectorAll('.color-option');
+        const otherColorGroup = document.getElementById('otherColorGroup');
+        const otherColorInput = document.getElementById('other_color');
+
+        // Toggle dropdown
+        colorHeader.addEventListener('click', function () {
+            colorDropdown.classList.toggle('show');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function (e) {
+            if (!colorSelect.contains(e.target)) {
+                colorDropdown.classList.remove('show');
+            }
+        });
+
+        // Handle color selection
+        colorOptions.forEach(option => {
+            option.addEventListener('click', function () {
+                const value = this.dataset.value;
+                const text = this.querySelector('span:last-child').textContent;
+
+                // Update hidden input
+                colorInput.value = value;
+
+                // Update header
+                if (value === 'other') {
+                    colorHeader.innerHTML = `<span>${text}</span>`;
+                } else {
+                    const colorSquare = this.querySelector('.color-square').cloneNode(true);
+                    colorHeader.innerHTML = '';
+                    colorHeader.appendChild(colorSquare);
+                    colorHeader.appendChild(document.createTextNode(text));
+                }
+
+                // Handle other color input
+                if (value === 'other') {
+                    otherColorGroup.style.display = 'block';
+                    otherColorInput.required = true;
+                } else {
+                    otherColorGroup.style.display = 'none';
+                    otherColorInput.required = false;
+                    otherColorInput.value = '';
+                }
+
+                // Close dropdown
+                colorDropdown.classList.remove('show');
+            });
+        });
+
+        // Save Draft functionality
+        const saveDraftBtn = document.getElementById('saveDraftBtn');
+        const form = document.getElementById('postVehiclesForm');
+
+        saveDraftBtn.addEventListener('click', function () {
+            // Create a copy of the form data
+            const formData = new FormData(form);
+            formData.append('is_draft', 'true');
+
+            // Send the form data to the server
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Draft saved successfully!');
+                    } else {
+                        alert('Error saving draft: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error saving draft. Please try again.');
+                });
+        });
+
+        // Function to validate positive numbers with max length
+        window.validatePositiveNumber = function (input, maxLength) {
+            if (input.value < 0) {
+                input.value = 0;
+            }
+            if (maxLength && input.value.length > maxLength) {
+                input.value = input.value.slice(0, maxLength);
+            }
+        };
+    });
+</script>
 {% endblock %}

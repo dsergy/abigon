@@ -129,7 +129,7 @@
             <label for="listing_purpose" class="form-label">Listing Purpose <span class="required">*</span></label>
             <select class="form-select" id="listing_purpose" name="listing_purpose" required>
                 <option value="">Select purpose</option>
-                <option value="buy" {% if is_buy %}selected{% endif %}>Buy</option>
+                <option value="sell" {% if is_sell %}selected{% endif %}>Sell</option>
                 <option value="rent" {% if is_rent %}selected{% endif %}>Rent</option>
             </select>
         </div>
@@ -323,7 +323,7 @@
 
         // Property Types functionality
         const propertyTypes = {
-            'buy': [
+            'sell': [
                 { value: 'house', label: 'House' },
                 { value: 'apartment', label: 'Apartment' },
                 { value: 'townhouse', label: 'Townhouse' },

@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Upload Vehicle Images - Abigon{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/post_main.css' %}">
+<style>
+    .post-form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .required {
+        color: #dc3545;
+    }
+
+    .form-actions {
+        margin-top: 2rem;
+        text-align: right;
+    }
+
+    .btn-primary {
+        color: #fff;
+        background-color: #007bff;
+        border-color: #007bff;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+
+    .btn-primary:hover {
+        background-color: #0069d9;
+        border-color: #0062cc;
+    }
+
+    .btn-secondary {
+        color: #fff;
+        background-color: #6c757d;
+        border-color: #6c757d;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        margin-right: 1rem;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+    }
+
+    .drop-zone {
+        border: 2px dashed #ccc;
+        border-radius: 8px;
+        padding: 2rem;
+        text-align: center;
+        background-color: #f8f9fa;
+        cursor: pointer;
+        transition: border-color 0.3s ease;
+    }
+
+    .drop-zone:hover {
+        border-color: #007bff;
+    }
+
+    .drop-zone.dragover {
+        border-color: #28a745;
+        background-color: #e9ecef;
+    }
+
+    .preview-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .preview-item {
+        position: relative;
+        aspect-ratio: 1;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .preview-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .preview-item .remove-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background-color: rgba(255, 255, 255, 0.8);
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        color: #dc3545;
+    }
+
+    .preview-item .remove-btn:hover {
+        background-color: #fff;
+    }
+
+    .error-message {
+        color: #dc3545;
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    #fileInput {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="post-form-container">
+    <form method="post" class="post-form" id="postVehiclesForm" enctype="multipart/form-data"
+        action="{% url 'ads:post_vehicles2' %}">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Vehicle Images <span class="required">*</span></label>
+            <div class="drop-zone" id="dropZone">
+                <p>Drag and drop images here or click to select files</p>
+                <p class="text-muted">(Maximum 10 images, each up to 4MB)</p>
+                <input type="file" id="fileInput" name="images" accept="image/*" multiple required>
+            </div>
+            <div class="preview-container" id="previewContainer"></div>
+            {% if form.images.errors %}
+            <div class="error-message">
+                {{ form.images.errors }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-secondary" name="back_button"
+                formaction="{% url 'ads:post_vehicles1' %}">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <button type="submit" class="btn btn-primary" name="next_button_vehicles2">
+                Next <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const form = document.getElementById('postVehiclesForm');
+        const maxFiles = 10;
+        const maxFileSize = 4 * 1024 * 1024; // 4MB
+        let currentFiles = new DataTransfer();
+
+        // Handle click on drop zone
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        // Handle file selection
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e);
+            updateFileInput();
+        });
+
+        // Handle drag and drop
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFiles(e);
+            updateFileInput();
+        });
+
+        function handleFiles(e) {
+            const files = e.target.files || e.dataTransfer.files;
+            if (files.length > maxFiles) {
+                alert(`You can only upload up to ${maxFiles} images`);
+                return;
+            }
+
+            for (let file of files) {
+                if (file.size > maxFileSize) {
+                    alert(`File ${file.name} is too large. Maximum size is 4MB`);
+                    continue;
+                }
+
+                if (!file.type.startsWith('image/')) {
+                    alert(`File ${file.name} is not an image`);
+                    continue;
+                }
+
+                currentFiles.items.add(file);
+                createPreview(file);
+            }
+        }
+
+        function createPreview(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+                previewItem.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview">
+                    <button type="button" class="remove-btn" title="Remove image">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+
+                previewItem.querySelector('.remove-btn').addEventListener('click', () => {
+                    previewItem.remove();
+                    const dt = new DataTransfer();
+                    for (let i = 0; i < currentFiles.files.length; i++) {
+                        if (currentFiles.files[i] !== file) {
+                            dt.items.add(currentFiles.files[i]);
+                        }
+                    }
+                    currentFiles = dt;
+                    updateFileInput();
+                });
+
+                previewContainer.appendChild(previewItem);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function updateFileInput() {
+            fileInput.files = currentFiles.files;
+        }
+    });
+</script>
+{% endblock %}

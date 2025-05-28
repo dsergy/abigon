@@ -280,8 +280,36 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/zip_code_handler.js' %}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // Initialize ZIP code handling
+        const zipInput = document.getElementById('zip_code');
+        const cityInput = document.getElementById('city');
+        const stateInput = document.getElementById('state');
+
+        if (zipInput) {
+            zipInput.addEventListener('input', function () {
+                this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);
+            });
+
+            zipInput.addEventListener('blur', function () {
+                const zipCode = this.value;
+                if (zipCode.length === 5) {
+                    ZipCodeHandler.fetchLocationDataDebounced(zipCode, function (locationData) {
+                        if (locationData) {
+                            cityInput.value = locationData.city;
+                            stateInput.value = locationData.state;
+                        } else {
+                            cityInput.value = '';
+                            stateInput.value = '';
+                            alert('Invalid ZIP code');
+                        }
+                    });
+                }
+            });
+        }
+
         // Set initial state of hide_address checkbox
         const hideAddressCheckbox = document.getElementById('hide_address');
         if (hideAddressCheckbox) {
@@ -291,60 +319,6 @@
             hideAddressCheckbox.addEventListener('change', function () {
                 console.log('Checkbox changed:', this.checked);
             });
-        }
-
-        // ZIP code functionality
-        const zipInput = document.getElementById('zip_code');
-        const cityInput = document.getElementById('city');
-        const stateInput = document.getElementById('state');
-
-        if (zipInput && cityInput && stateInput) {
-            let zipTimer = null;
-
-            zipInput.addEventListener('input', function () {
-                const zip = this.value.trim();
-                console.log('ZIP input:', zip);
-
-                if (!zip) {
-                    cityInput.value = '';
-                    stateInput.value = '';
-                    return;
-                }
-
-                if (zip.length === 5 && /^\d+$/.test(zip)) {
-                    if (zipTimer) clearTimeout(zipTimer);
-                    zipTimer = setTimeout(() => {
-                        fetchZipData(zip);
-                    }, 500);
-                }
-            });
-
-            async function fetchZipData(zip) {
-                console.log('Fetching ZIP data for:', zip);
-
-                try {
-                    const response = await fetch(`https://api.zippopotam.us/us/${zip}`);
-                    console.log('ZIP API response status:', response.status);
-
-                    if (!response.ok) {
-                        throw new Error('ZIP not found');
-                    }
-
-                    const data = await response.json();
-                    console.log('ZIP API data:', data);
-
-                    if (data.places && data.places.length > 0) {
-                        const place = data.places[0];
-                        cityInput.value = place['place name'];
-                        stateInput.value = place['state abbreviation'];
-                        console.log('ZIP data updated:', place);
-                    }
-                } catch (error) {
-                    console.error('ZIP fetch error:', error);
-                    cityInput.value = '';
-                    stateInput.value = '';
-                }
-            }
         }
 
         // Property Types functionality

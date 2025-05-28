@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Review Vehicle Post - Abigon{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/post_main.css' %}">
+<style>
+    .post-form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .review-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .review-section h3 {
+        margin-bottom: 1rem;
+        color: #333;
+        font-size: 1.2rem;
+    }
+
+    .review-item {
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .review-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .review-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.25rem;
+    }
+
+    .review-value {
+        color: #212529;
+    }
+
+    .image-preview {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .image-preview img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+
+    .form-actions {
+        margin-top: 2rem;
+        text-align: right;
+    }
+
+    .btn-primary {
+        color: #fff;
+        background-color: #007bff;
+        border-color: #007bff;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+
+    .btn-primary:hover {
+        background-color: #0069d9;
+        border-color: #0062cc;
+    }
+
+    .btn-secondary {
+        color: #fff;
+        background-color: #6c757d;
+        border-color: #6c757d;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        margin-right: 1rem;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="post-form-container">
+    <form method="post" class="post-form" id="postVehiclesForm" action="{% url 'ads:post_vehicles3' %}">
+        {% csrf_token %}
+
+        <div class="review-section">
+            <h3>Vehicle Details</h3>
+            <div class="review-item">
+                <div class="review-label">Listing Purpose</div>
+                <div class="review-value">{{ form_data.listing_purpose }}</div>
+            </div>
+            <div class="review-item">
+                <div class="review-label">Vehicle Type</div>
+                <div class="review-value">{{ form_data.vehicle_type }}</div>
+            </div>
+            <div class="review-item">
+                <div class="review-label">Make</div>
+                <div class="review-value">{{ form_data.make }}</div>
+            </div>
+            <div class="review-item">
+                <div class="review-label">Model</div>
+                <div class="review-value">{{ form_data.model }}</div>
+            </div>
+            <div class="review-item">
+                <div class="review-label">Year</div>
+                <div class="review-value">{{ form_data.year }}</div>
+            </div>
+            <div class="review-item">
+                <div class="review-label">Price</div>
+                <div class="review-value">${{ form_data.price }}</div>
+            </div>
+            <div class="review-item">
+                <div class="review-label">Location</div>
+                <div class="review-value">{{ form_data.location }}</div>
+            </div>
+            <div class="review-item">
+                <div class="review-label">Additional Details</div>
+                <div class="review-value">{{ form_data.additional_details }}</div>
+            </div>
+            <div class="review-item">
+                <div class="review-label">Description</div>
+                <div class="review-value">{{ form_data.description }}</div>
+            </div>
+        </div>
+
+        <div class="review-section">
+            <h3>Images</h3>
+            <div class="image-preview">
+                {% for image in form_data.images %}
+                <img src="{{ image.url }}" alt="Vehicle image">
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-secondary" name="back_button"
+                formaction="{% url 'ads:post_vehicles2' %}">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <button type="submit" class="btn btn-primary" name="submit_button">
+                Submit Post <i class="fas fa-check"></i>
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

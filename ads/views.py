@@ -388,3 +388,119 @@ def buy_rent_page(request):
 def post_vehicles_main(request):
     """View for the vehicles main page"""
     return render(request, 'ads/post_vehicles/post_vehicles_main.html')
+
+def post_vehicles1(request):
+    """View for the first step of vehicle posting form."""
+    if request.method == 'POST':
+        # Save form data to session
+        request.session['vehicle_data'] = {
+            'title': request.POST.get('title'),
+            'listing_purpose': request.POST.get('listing_purpose'),
+            'vehicle_type': request.POST.get('vehicle_type'),
+            'make': request.POST.get('make'),
+            'model': request.POST.get('model'),
+            'year': request.POST.get('year'),
+            'price': request.POST.get('price'),
+            'zip_code': request.POST.get('zip_code'),
+            'city': request.POST.get('city'),
+            'state': request.POST.get('state'),
+            'additional_details': request.POST.get('additional_details'),
+            'description': request.POST.get('description'),
+        }
+        return redirect('ads:post_vehicles2')
+    
+    # Load saved data if exists
+    vehicle_data = request.session.get('vehicle_data', {})
+    vehicle_type = vehicle_data.get('vehicle_type', '')
+    
+    # Add boolean flags for listing purpose and vehicle type
+    context = {
+        'vehicle_data': vehicle_data,
+        'is_buy': vehicle_data.get('listing_purpose') == 'buy',
+        'is_rent': vehicle_data.get('listing_purpose') == 'rent',
+        'is_sedan': vehicle_type == 'sedan',
+        'is_suv': vehicle_type == 'suv',
+        'is_truck': vehicle_type == 'truck',
+        'is_van': vehicle_type == 'van',
+        'is_coupe': vehicle_type == 'coupe',
+        'is_wagon': vehicle_type == 'wagon',
+        'is_convertible': vehicle_type == 'convertible'
+    }
+    
+    return render(request, 'ads/post_vehicles/post_vehicles1.html', context)
+
+def post_vehicles2(request):
+    """Second step of vehicle posting form for image upload."""
+    # Проверяем, есть ли данные из первого шага
+    if 'vehicle_data' not in request.session:
+        messages.error(request, 'Please complete the first step first')
+        return redirect('ads:post_vehicles1')
+    
+    if request.method == 'POST':
+        # Если нажата кнопка Back, возвращаемся на post_vehicles1
+        if 'back_button' in request.POST:
+            return redirect('ads:post_vehicles1')
+            
+        # Проверяем, что нажата кнопка Next
+        if 'next_button_vehicles2' not in request.POST:
+            messages.error(request, 'Invalid form submission')
+            return redirect('ads:post_vehicles2')
+            
+        try:
+            # Обработка загрузки изображений
+            images = ImageUploadMixin().handle_image_upload(request)
+            # Сохраняем изображения в сессии
+            request.session['vehicle_images'] = images or []
+            logger.info(f"Successfully processed {len(images)} images")
+            return redirect('ads:post_vehicles3')
+        except ValidationError as e:
+            logger.error(f"Validation error in post_vehicles2: {str(e)}")
+            messages.error(request, str(e))
+        except Exception as e:
+            logger.error(f"Unexpected error in post_vehicles2: {str(e)}")
+            messages.error(request, 'An unexpected error occurred while processing your images. Please try again.')
+        
+        return render(request, 'ads/post_vehicles/post_vehicles2.html', {
+            'form': ImageUploadMixin().get_image_form()
+        })
+    
+    return render(request, 'ads/post_vehicles/post_vehicles2.html', {
+        'form': ImageUploadMixin().get_image_form()
+    })
+
+def post_vehicles3(request):
+    """Third step of vehicle posting form for review."""
+    # Проверяем, есть ли данные из предыдущих шагов
+    if 'vehicle_data' not in request.session or 'vehicle_images' not in request.session:
+        messages.error(request, 'Please complete all previous steps first')
+        return redirect('ads:post_vehicles1')
+    
+    if request.method == 'POST':
+        # Если нажата кнопка Back, возвращаемся на post_vehicles2
+        if 'back_button' in request.POST:
+            return redirect('ads:post_vehicles2')
+            
+        # Если нажата кнопка Submit
+        if 'submit_button' in request.POST:
+            try:
+                # Создаем новое объявление
+                vehicle_data = request.session['vehicle_data']
+                vehicle_images = request.session['vehicle_images']
+                
+                # TODO: Создать и сохранить объявление в базе данных
+                # После успешного создания очищаем данные сессии
+                request.session.pop('vehicle_data', None)
+                request.session.pop('vehicle_images', None)
+                
+                messages.success(request, 'Your vehicle listing has been successfully created!')
+                return redirect('ads:ad_list')
+            except Exception as e:
+                logger.error(f"Error creating vehicle listing: {str(e)}")
+                messages.error(request, 'An error occurred while creating your listing. Please try again.')
+    
+    context = {
+        'form_data': request.session['vehicle_data'],
+        'images': request.session['vehicle_images']
+    }
+    
+    return render(request, 'ads/post_vehicles/post_vehicles3.html', context)

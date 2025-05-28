@@ -19,6 +19,11 @@ urlpatterns = [
     path('post/home/step2/', views.post_home2, name='post_home2'),
     path('post/home/step3/', views.post_home3, name='post_home3'),
     
+    # Vehicle posting URLs
+    path('post/vehicles/step1/', views.post_vehicles1, name='post_vehicles1'),
+    path('post/vehicles/step2/', views.post_vehicles2, name='post_vehicles2'),
+    path('post/vehicles/step3/', views.post_vehicles3, name='post_vehicles3'),
+    
     # Ad detail URLs
     path('<slug:slug>/', views.AdDetailView.as_view(), name='ad_detail'),
     path('<slug:slug>/edit/', views.AdUpdateView.as_view(), name='ad_update'),

@@ -67,28 +67,23 @@
     <p class="post-main-description">Choose the type of vehicle you want to post</p>
 
     <div class="category-buttons">
-        <a href="{% url 'ads:post_step' post_type='buy' step=1 %}?category=vehicles&subcategory=cars"
-            class="category-button">
+        <a href="{% url 'ads:post_vehicles1' %}?subcategory=cars" class="category-button">
             <i class="fas fa-car"></i>
             <span>Cars</span>
         </a>
-        <a href="{% url 'ads:post_step' post_type='buy' step=1 %}?category=vehicles&subcategory=trucks"
-            class="category-button">
+        <a href="{% url 'ads:post_vehicles1' %}?subcategory=trucks" class="category-button">
             <i class="fas fa-truck"></i>
             <span>Trucks</span>
         </a>
-        <a href="{% url 'ads:post_step' post_type='buy' step=1 %}?category=vehicles&subcategory=motorcycles"
-            class="category-button">
+        <a href="{% url 'ads:post_vehicles1' %}?subcategory=motorcycles" class="category-button">
             <i class="fas fa-motorcycle"></i>
             <span>Motorcycles</span>
         </a>
-        <a href="{% url 'ads:post_step' post_type='buy' step=1 %}?category=vehicles&subcategory=commercial"
-            class="category-button">
+        <a href="{% url 'ads:post_vehicles1' %}?subcategory=commercial" class="category-button">
             <i class="fas fa-bus"></i>
             <span>Commercial</span>
         </a>
-        <a href="{% url 'ads:post_step' post_type='buy' step=1 %}?category=vehicles&subcategory=others"
-            class="category-button">
+        <a href="{% url 'ads:post_vehicles1' %}?subcategory=others" class="category-button">
             <i class="fas fa-trailer"></i>
             <span>Others</span>
         </a>

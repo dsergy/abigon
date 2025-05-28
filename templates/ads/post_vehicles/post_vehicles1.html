@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Post Vehicle - Abigon{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/post_main.css' %}">
+<style>
+    .post-form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .required {
+        color: #dc3545;
+    }
+
+    .form-control {
+        display: block;
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .form-control:focus {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    .form-control[readonly] {
+        background-color: #e9ecef;
+    }
+
+    .form-actions {
+        margin-top: 2rem;
+        text-align: right;
+    }
+
+    .btn-primary {
+        color: #fff;
+        background-color: #007bff;
+        border-color: #007bff;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+
+    .btn-primary:hover {
+        background-color: #0069d9;
+        border-color: #0062cc;
+    }
+
+    .btn-secondary {
+        color: #fff;
+        background-color: #6c757d;
+        border-color: #6c757d;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        margin-right: 1rem;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+    }
+
+    .short-input {
+        width: 120px !important;
+    }
+
+    .location-group {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .location-group .form-group {
+        flex: 1;
+    }
+
+    .location-group .zip-group {
+        width: 120px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="post-form-container">
+    <form method="post" class="post-form" id="postVehiclesForm" action="{% url 'ads:post_vehicles1' %}">
+        {% csrf_token %}
+
+        <!-- Title -->
+        <div class="form-group mb-4">
+            <label for="title" class="form-label">Listing Title <span class="required">*</span> <span
+                    class="text-muted">(up to 20 words)</span></label>
+            <input type="text" class="form-control" id="title" name="title" value="{{ vehicle_data.title|default:'' }}"
+                maxlength="100" required placeholder="Enter a descriptive title for your vehicle">
+            <div class="form-text">Make your listing stand out with a clear, descriptive title</div>
+        </div>
+
+        <!-- Listing Purpose -->
+        <div class="form-group mb-4">
+            <label for="listing_purpose" class="form-label">Listing Purpose <span class="required">*</span></label>
+            <select class="form-select" id="listing_purpose" name="listing_purpose" required>
+                <option value="">Select purpose</option>
+                <option value="buy" {% if is_buy %}selected{% endif %}>Buy</option>
+                <option value="rent" {% if is_rent %}selected{% endif %}>Rent</option>
+            </select>
+        </div>
+
+        <!-- Vehicle Type -->
+        <div class="form-group">
+            <label for="vehicle_type">Vehicle Type <span class="required">*</span></label>
+            <select name="vehicle_type" id="vehicle_type" class="form-control" required>
+                <option value="">Select vehicle type</option>
+                <option value="sedan" {% if is_sedan %}selected{% endif %}>Sedan</option>
+                <option value="suv" {% if is_suv %}selected{% endif %}>SUV</option>
+                <option value="truck" {% if is_truck %}selected{% endif %}>Truck</option>
+                <option value="van" {% if is_van %}selected{% endif %}>Van</option>
+                <option value="coupe" {% if is_coupe %}selected{% endif %}>Coupe</option>
+                <option value="wagon" {% if is_wagon %}selected{% endif %}>Wagon</option>
+                <option value="convertible" {% if is_convertible %}selected{% endif %}>Convertible</option>
+            </select>
+        </div>
+
+        <!-- Make and Model -->
+        <div class="form-group">
+            <label for="make">Make <span class="required">*</span></label>
+            <input type="text" name="make" id="make" class="form-control" required
+                value="{{ vehicle_data.make|default:'' }}" placeholder="e.g., Toyota">
+        </div>
+
+        <div class="form-group">
+            <label for="model">Model <span class="required">*</span></label>
+            <input type="text" name="model" id="model" class="form-control" required
+                value="{{ vehicle_data.model|default:'' }}" placeholder="e.g., Camry">
+        </div>
+
+        <!-- Year -->
+        <div class="form-group">
+            <label for="year">Year <span class="required">*</span></label>
+            <select name="year" id="year" class="form-control" required>
+                <option value="">Select year</option>
+            </select>
+        </div>
+
+        <!-- Price -->
+        <div class="form-group">
+            <label for="price">Price <span class="required">*</span></label>
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">$</span>
+                </div>
+                <input type="number" name="price" id="price" class="form-control" required min="0" max="999999999"
+                    step="0.01" value="{{ vehicle_data.price|default:'' }}" oninput="validatePositiveNumber(this, 9)">
+            </div>
+        </div>
+
+        <!-- Location -->
+        <div class="form-group">
+            <label for="zip_code">Zip Code <span class="required">*</span></label>
+            <input type="text" name="zip_code" id="zip_code" class="form-control" pattern="[0-9]{5}" maxlength="5"
+                required placeholder="Enter 5-digit zip code" value="{{ vehicle_data.zip_code|default:'' }}">
+        </div>
+
+        <div class="form-group">
+            <label for="city">City</label>
+            <input type="text" name="city" id="city" class="form-control" readonly
+                value="{{ vehicle_data.city|default:'' }}">
+        </div>
+
+        <div class="form-group">
+            <label for="state">State</label>
+            <input type="text" name="state" id="state" class="form-control" readonly
+                value="{{ vehicle_data.state|default:'' }}">
+        </div>
+
+        <!-- Additional Details -->
+        <div class="form-group">
+            <label for="additional_details">Additional Details</label>
+            <textarea name="additional_details" id="additional_details" class="form-control" rows="3"
+                placeholder="Enter any additional details about your vehicle">{{ vehicle_data.additional_details|default:'' }}</textarea>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+            <label for="description">Description <span class="required">*</span></label>
+            <textarea name="description" id="description" class="form-control" rows="5" required
+                placeholder="Provide a detailed description of your vehicle">{{ vehicle_data.description|default:'' }}</textarea>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                Next <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/zip_code_handler.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Populate year dropdown
+        const yearSelect = document.getElementById('year');
+        const currentYear = new Date().getFullYear();
+        const startYear = 1900;
+
+        for (let year = currentYear; year >= startYear; year--) {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            if (year === parseInt('{{ vehicle_data.year|default:"" }}')) {
+                option.selected = true;
+            }
+            yearSelect.appendChild(option);
+        }
+
+        // Validate positive numbers
+        window.validatePositiveNumber = function (input, maxDigits) {
+            let value = input.value.replace(/[^0-9]/g, '');
+            if (maxDigits && value.length > maxDigits) {
+                value = value.slice(0, maxDigits);
+            }
+            input.value = value;
+        };
+
+        // Initialize ZIP code handling
+        const zipInput = document.getElementById('zip_code');
+        const cityInput = document.getElementById('city');
+        const stateInput = document.getElementById('state');
+
+        if (zipInput) {
+            zipInput.addEventListener('input', function () {
+                this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);
+            });
+
+            zipInput.addEventListener('blur', function () {
+                const zipCode = this.value;
+                if (zipCode.length === 5) {
+                    ZipCodeHandler.fetchLocationDataDebounced(zipCode, function (locationData) {
+                        if (locationData) {
+                            cityInput.value = locationData.city;
+                            stateInput.value = locationData.state;
+                        } else {
+                            cityInput.value = '';
+                            stateInput.value = '';
+                            alert('Invalid ZIP code');
+                        }
+                    });
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -10,6 +10,7 @@ urlpatterns = [
     path('new-post/base/', views.new_post_base, name='new_post_base'),
     path('new-post/load-sidebar/', views.load_sidebar, name='load_sidebar'),
     path('new-post/buy-rent/', views.buy_rent_page, name='buy_rent_page'),
+    path('new-post/vehicles/', views.post_vehicles_main, name='post_vehicles_main'),
     path('post/<str:post_type>/step/<int:step>/', views.post_step, name='post_step'),
     path('api/subcategories/', views.get_subcategories, name='get_subcategories'),
     

@@ -384,3 +384,7 @@ def buy_rent_page(request):
         'post_type': 'buy',
         'active_page': 'real_estate'
     })
+
+def post_vehicles_main(request):
+    """View for the vehicles main page"""
+    return render(request, 'ads/post_vehicles/post_vehicles_main.html')

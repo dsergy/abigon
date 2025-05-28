@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Vehicles - Abigon{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/post_main.css' %}">
+<style>
+    .category-buttons {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .category-button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        font-size: 1rem;
+        font-weight: 500;
+        border-radius: var(--button-radius);
+        transition: all var(--transition-speed);
+        text-decoration: none;
+        color: var(--button-text);
+        background-color: var(--button-bg);
+        border: none;
+        text-align: center;
+    }
+
+    .category-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 128, 0.2);
+        color: var(--button-text);
+    }
+
+    .category-button i {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .category-button span {
+        font-size: 0.9rem;
+    }
+
+    .back-button {
+        margin-top: 2rem;
+        padding: 0.8rem 1.5rem;
+        font-size: 1rem;
+        border-radius: var(--button-radius);
+        transition: all var(--transition-speed);
+    }
+
+    .back-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 128, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="new-post-main">
+    <h1 class="post-main-title">Vehicles</h1>
+    <p class="post-main-description">Choose the type of vehicle you want to post</p>
+
+    <div class="category-buttons">
+        <a href="{% url 'ads:post_step' post_type='buy' step=1 %}?category=vehicles&subcategory=cars"
+            class="category-button">
+            <i class="fas fa-car"></i>
+            <span>Cars</span>
+        </a>
+        <a href="{% url 'ads:post_step' post_type='buy' step=1 %}?category=vehicles&subcategory=trucks"
+            class="category-button">
+            <i class="fas fa-truck"></i>
+            <span>Trucks</span>
+        </a>
+        <a href="{% url 'ads:post_step' post_type='buy' step=1 %}?category=vehicles&subcategory=motorcycles"
+            class="category-button">
+            <i class="fas fa-motorcycle"></i>
+            <span>Motorcycles</span>
+        </a>
+        <a href="{% url 'ads:post_step' post_type='buy' step=1 %}?category=vehicles&subcategory=commercial"
+            class="category-button">
+            <i class="fas fa-bus"></i>
+            <span>Commercial</span>
+        </a>
+        <a href="{% url 'ads:post_step' post_type='buy' step=1 %}?category=vehicles&subcategory=others"
+            class="category-button">
+            <i class="fas fa-trailer"></i>
+            <span>Others</span>
+        </a>
+    </div>
+
+    <div class="mt-4 text-center">
+        <a href="{% url 'ads:buy_rent_page' %}" class="btn btn-primary back-button">
+            <i class="fas fa-arrow-left"></i>
+            Back
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Add any JavaScript functionality here if needed
+    });
+</script>
+{% endblock %}

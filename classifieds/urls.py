@@ -26,11 +26,11 @@ handler404 = 'classifieds.views.handler404'
 handler500 = 'classifieds.views.handler500'
 
 urlpatterns = [  
-    path('', home, name='home'),  # Главная страница
+    path('', home, name='home'),  # Main page
     path('admin/', admin.site.urls),  
     path('accounts/', include('accounts.urls')),  
     path('accounts/', include('allauth.urls')),  # allauth URLs  
-    path('ads/', include('ads.urls')),  # Изменено с '' на 'ads/'
+    path('ads/', include('ads.urls')), 
     path('services/', services, name='services'),
     path('events/', events, name='events'),
 ]  

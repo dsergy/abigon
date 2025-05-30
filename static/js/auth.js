@@ -17,6 +17,70 @@ window.togglePassword = function (button) {
     }
 };
 
+// Initialize reCAPTCHA
+function initRecaptcha() {
+    if (typeof grecaptcha === 'undefined') {
+        const script = document.createElement('script');
+        // Get site key from meta tag
+        const siteKey = document.querySelector('meta[name="recaptcha-site-key"]')?.getAttribute('content');
+        if (!siteKey) {
+            console.error('reCAPTCHA site key not found');
+            return;
+        }
+        script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}`;
+        script.async = true;
+        script.defer = true;
+        script.onload = function () {
+            grecaptcha.ready(function () {
+                enableButtonsAndGetTokens();
+            });
+        };
+        document.head.appendChild(script);
+    } else {
+        enableButtonsAndGetTokens();
+    }
+}
+
+// Function to enable buttons and get tokens
+function enableButtonsAndGetTokens() {
+    // Get site key from meta tag
+    const siteKey = document.querySelector('meta[name="recaptcha-site-key"]')?.getAttribute('content');
+    if (!siteKey) {
+        console.error('reCAPTCHA site key not found');
+        return;
+    }
+
+    // Get initial tokens for all forms
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        let action = 'register';
+        if (form.classList.contains('login-form')) {
+            action = 'login';
+        } else if (form.classList.contains('password-reset-form')) {
+            action = 'password_reset';
+        } else if (form.classList.contains('verify-form')) {
+            action = 'password_reset_verify';
+        } else if (form.classList.contains('set-password-form')) {
+            action = 'password_reset_confirm';
+        }
+
+        grecaptcha.execute(siteKey, { action: action })
+            .then(function (token) {
+                const input = form.querySelector('input[name="g-recaptcha-response"]');
+                if (input) {
+                    input.value = token;
+                }
+                const submitButton = form.querySelector('button[type="submit"]');
+                if (submitButton) {
+                    submitButton.disabled = false;
+                }
+            })
+            .catch(function (error) {
+                console.error('reCAPTCHA Error:', error);
+            });
+    });
+}
+
 // Helper for safe fetch requests with CSRF token
 const csrfFetch = (url, options = {}) => {
     // Get CSRF token from either meta tag or input field
@@ -111,6 +175,9 @@ function displayError(form, message) {
 
 // Main initialization when DOM is loaded
 document.addEventListener('DOMContentLoaded', function () {
+    // Initialize reCAPTCHA
+    initRecaptcha();
+
     // Get modal elements
     const loginModal = document.getElementById('loginModal');
     const registerModal = document.getElementById('registerModal');
@@ -740,12 +807,29 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Initialize password reset modals
-    [emailModal, verifyModal, setPasswordModal].forEach(modal => {
+    // Add event listeners for modal show events
+    const modals = [
+        loginModal,
+        registerModal,
+        emailModal,
+        verifyModal,
+        setPasswordModal
+    ];
+
+    modals.forEach(modal => {
         if (modal) {
             modal.addEventListener('shown.bs.modal', function () {
                 enableButtonsAndGetTokens();
             });
+        }
+    });
+
+    // Initialize reCAPTCHA when HTMX loads content
+    document.body.addEventListener('htmx:afterOnLoad', function (evt) {
+        if (evt.detail.successful) {
+            setTimeout(function () {
+                enableButtonsAndGetTokens();
+            }, 100);
         }
     });
 });

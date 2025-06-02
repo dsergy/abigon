@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Review Listing - Abigon{% endblock %}
+{% block title %}Review Your Listing - Abigon{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/post_main.css' %}">
@@ -17,62 +17,58 @@
 
     .review-section {
         margin-bottom: 2rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid #dee2e6;
-    }
-
-    .review-section:last-child {
-        border-bottom: none;
+        padding: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
     }
 
     .review-section h3 {
-        color: #495057;
         margin-bottom: 1rem;
+        color: #333;
+        font-size: 1.25rem;
     }
 
     .review-item {
         display: flex;
         margin-bottom: 0.5rem;
+        padding: 0.5rem;
+        background-color: #f8f9fa;
+        border-radius: 4px;
     }
 
     .review-label {
-        font-weight: 600;
-        width: 150px;
-        color: #6c757d;
+        flex: 0 0 200px;
+        font-weight: 500;
+        color: #495057;
     }
 
     .review-value {
         flex: 1;
-    }
-
-    .image-preview {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 1rem;
-        margin-top: 1rem;
-    }
-
-    .image-preview img {
-        width: 100%;
-        aspect-ratio: 1;
-        object-fit: cover;
-        border-radius: 4px;
+        color: #212529;
     }
 
     .form-actions {
         margin-top: 2rem;
-        text-align: right;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     .btn-primary {
         color: #fff;
         background-color: #007bff;
         border-color: #007bff;
-        padding: 0.5rem 1rem;
-        font-size: 1rem;
-        line-height: 1.5;
-        border-radius: 0.25rem;
-        cursor: pointer;
     }
 
     .btn-primary:hover {
@@ -84,12 +80,6 @@
         color: #fff;
         background-color: #6c757d;
         border-color: #6c757d;
-        padding: 0.5rem 1rem;
-        font-size: 1rem;
-        line-height: 1.5;
-        border-radius: 0.25rem;
-        cursor: pointer;
-        margin-right: 1rem;
     }
 
     .btn-secondary:hover {
@@ -107,6 +97,20 @@
         white-space: pre-wrap;
         line-height: 1.5;
     }
+
+    .image-preview {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .image-preview img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
 </style>
 {% endblock %}
 
@@ -114,6 +118,7 @@
 <div class="review-container">
     <form method="post" class="review-form" id="reviewForm" action="{% url 'ads:post_home3' %}">
         {% csrf_token %}
+        <input type="hidden" name="debug" value="true">
 
         <!-- Basic Information -->
         <div class="review-section">
@@ -179,13 +184,7 @@
             <h3>Location</h3>
             <div class="review-item">
                 <div class="review-label">Address:</div>
-                <div class="review-value">
-                    {% if hide_address %}
-                    <span class="text-muted">Hidden from listings</span>
-                    {% else %}
-                    {{ address }}
-                    {% endif %}
-                </div>
+                <div class="review-value">{{ address }}</div>
             </div>
             <div class="review-item">
                 <div class="review-label">City:</div>
@@ -198,6 +197,10 @@
             <div class="review-item">
                 <div class="review-label">Zip Code:</div>
                 <div class="review-value">{{ zip_code }}</div>
+            </div>
+            <div class="review-item">
+                <div class="review-label">Hide Address:</div>
+                <div class="review-value">{{ hide_address|yesno:"Yes,No" }}</div>
             </div>
         </div>
 
@@ -219,7 +222,9 @@
         <!-- Description -->
         <div class="review-section">
             <h3>Description</h3>
-            <div class="description">{{ description }}</div>
+            <div class="review-item">
+                <div class="review-value description">{{ description }}</div>
+            </div>
         </div>
 
         <!-- Images -->
@@ -251,7 +256,13 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Add any additional JavaScript functionality here
+        const form = document.getElementById('reviewForm');
+        form.addEventListener('submit', function (e) {
+            console.log('Form submitted');
+            const formData = new FormData(form);
+            console.log('Action:', formData.get('action'));
+            console.log('CSRF Token:', formData.get('csrfmiddlewaretoken'));
+        });
     });
 </script>
 {% endblock %}

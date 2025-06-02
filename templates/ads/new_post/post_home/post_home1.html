@@ -7,111 +7,13 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/post_main.css' %}">
-<style>
-    .post-form-container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .form-group {
-        margin-bottom: 1.5rem;
-    }
-
-    .required {
-        color: #dc3545;
-    }
-
-    .form-control {
-        display: block;
-        width: 100%;
-        padding: 0.5rem 0.75rem;
-        font-size: 1rem;
-        line-height: 1.5;
-        color: #495057;
-        background-color: #fff;
-        border: 1px solid #ced4da;
-        border-radius: 0.25rem;
-        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-    }
-
-    .form-control:focus {
-        border-color: #80bdff;
-        outline: 0;
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-    }
-
-    .form-control[readonly] {
-        background-color: #e9ecef;
-    }
-
-    .custom-control {
-        position: relative;
-        display: block;
-        min-height: 1.5rem;
-        padding-left: 1.5rem;
-    }
-
-    .custom-control-input {
-        position: relative !important;
-        z-index: 1 !important;
-        opacity: 1 !important;
-        cursor: pointer;
-    }
-
-    .custom-control-input:checked {
-        background-color: #007bff;
-        border-color: #007bff;
-    }
-
-    .custom-control-input:focus {
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-    }
-
-    .custom-control-label {
-        cursor: pointer;
-    }
-
-    .form-actions {
-        margin-top: 2rem;
-        text-align: right;
-    }
-
-    .btn-primary {
-        color: #fff;
-        background-color: #007bff;
-        border-color: #007bff;
-        padding: 0.5rem 1rem;
-        font-size: 1rem;
-        line-height: 1.5;
-        border-radius: 0.25rem;
-        cursor: pointer;
-    }
-
-    .btn-primary:hover {
-        background-color: #0069d9;
-        border-color: #0062cc;
-    }
-
-    .rent-only {
-        display: none;
-    }
-
-    .rent-only.show {
-        display: block;
-    }
-
-    .short-input {
-        width: 120px !important;
-    }
-</style>
 {% endblock %}
 
 {% block content %}
 <div class="post-form-container">
+    <div class="category-path">
+        <strong>Sell/Rent</strong> <span>→</span> <strong>Real Estate</strong>
+    </div>
     <form method="post" class="post-form" id="postForm" action="{% url 'ads:post_home1' %}">
         {% csrf_token %}
 
@@ -242,24 +144,6 @@
             </div>
         </div>
 
-        <!-- Rent-specific fields -->
-        <div class="rent-only" id="rentFields">
-            <div class="form-group">
-                <label for="availability_date">Availability Date</label>
-                <input type="date" name="availability_date" id="availability_date" class="form-control">
-            </div>
-
-            <div class="form-group">
-                <label for="lease_term">Lease Term</label>
-                <select name="lease_term" id="lease_term" class="form-control">
-                    <option value="month_to_month">Month-to-Month</option>
-                    <option value="6_months">6 Months</option>
-                    <option value="1_year">1 Year</option>
-                    <option value="other">Other</option>
-                </select>
-            </div>
-        </div>
-
         <!-- Description -->
         <div class="form-group">
             <label for="description">Description <span class="required">*</span></label>
@@ -283,13 +167,59 @@
 <script src="{% static 'js/zip_code_handler.js' %}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Initialize ZIP code handling
+        // Property Type handling
+        const propertyTypeSelect = document.getElementById('property_type');
+        const listingPurposeSelect = document.getElementById('listing_purpose');
+
+        const propertyTypes = {
+            sell: [
+                { value: 'house', text: 'House' },
+                { value: 'apartment', text: 'Apartment' },
+                { value: 'condo', text: 'Condo' },
+                { value: 'townhouse', text: 'Townhouse' },
+                { value: 'land', text: 'Land' },
+                { value: 'commercial', text: 'Commercial' },
+                { value: 'other', text: 'Other' }
+            ],
+            rent: [
+                { value: 'house', text: 'House' },
+                { value: 'apartment', text: 'Apartment' },
+                { value: 'condo', text: 'Condo' },
+                { value: 'townhouse', text: 'Townhouse' },
+                { value: 'room', text: 'Room' },
+                { value: 'other', text: 'Other' }
+            ]
+        };
+
+        function updatePropertyTypes() {
+            const purpose = listingPurposeSelect.value;
+            propertyTypeSelect.innerHTML = '<option value="">Select property type</option>';
+
+            if (purpose && propertyTypes[purpose]) {
+                propertyTypes[purpose].forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type.value;
+                    option.textContent = type.text;
+                    propertyTypeSelect.appendChild(option);
+                });
+            }
+        }
+
+        listingPurposeSelect.addEventListener('change', updatePropertyTypes);
+        updatePropertyTypes();
+
+        // ZIP code handling
         const zipInput = document.getElementById('zip_code');
         const cityInput = document.getElementById('city');
         const stateInput = document.getElementById('state');
 
+        // Делаем поля city и state неактивными
+        cityInput.readOnly = true;
+        stateInput.readOnly = true;
+
         if (zipInput) {
             zipInput.addEventListener('input', function () {
+                // Оставляем только цифры и ограничиваем длину до 5
                 this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);
             });
 
@@ -310,116 +240,54 @@
             });
         }
 
-        // Set initial state of hide_address checkbox
-        const hideAddressCheckbox = document.getElementById('hide_address');
-        if (hideAddressCheckbox) {
-            hideAddressCheckbox.checked = hideAddressCheckbox.dataset.initialState === 'true';
+        // Word count for description
+        const descriptionTextarea = document.getElementById('description');
+        const wordCountSpan = document.getElementById('wordCount');
+        const maxWords = 250;
 
-            // Add click handler
-            hideAddressCheckbox.addEventListener('change', function () {
-                console.log('Checkbox changed:', this.checked);
-            });
-        }
+        function updateWordCount() {
+            const text = descriptionTextarea.value.trim();
+            const words = text ? text.split(/\s+/) : [];
+            const remaining = maxWords - words.length;
+            wordCountSpan.textContent = remaining;
 
-        // Property Types functionality
-        const propertyTypes = {
-            'sell': [
-                { value: 'house', label: 'House' },
-                { value: 'apartment', label: 'Apartment' },
-                { value: 'townhouse', label: 'Townhouse' },
-                { value: 'commercial', label: 'Commercial' },
-                { value: 'other', label: 'Other' }
-            ],
-            'rent': [
-                { value: 'house', label: 'House' },
-                { value: 'apartment', label: 'Apartment' },
-                { value: 'townhouse', label: 'Townhouse' },
-                { value: 'room', label: 'Room' },
-                { value: 'commercial', label: 'Commercial' },
-                { value: 'other', label: 'Other' }
-            ]
-        };
-
-        const listingPurposeSelect = document.getElementById('listing_purpose');
-        const propertyTypeSelect = document.getElementById('property_type');
-
-        function updatePropertyTypes() {
-            const purpose = listingPurposeSelect.value;
-            propertyTypeSelect.innerHTML = '<option value="">Select property type</option>';
-
-            if (purpose && propertyTypes[purpose]) {
-                propertyTypes[purpose].forEach(type => {
-                    const option = document.createElement('option');
-                    option.value = type.value;
-                    option.textContent = type.label;
-                    propertyTypeSelect.appendChild(option);
-                });
-            }
-        }
-
-        // Update property types when listing purpose changes
-        listingPurposeSelect.addEventListener('change', updatePropertyTypes);
-
-        // Initial update if a purpose is already selected
-        if (listingPurposeSelect.value) {
-            updatePropertyTypes();
-        }
-
-        // Function to toggle rent-specific fields
-        window.toggleRentFields = function (purpose) {
-            const rentFields = document.getElementById('rentFields');
-            if (purpose === 'rent') {
-                rentFields.classList.add('show');
+            if (remaining < 0) {
+                wordCountSpan.style.color = 'red';
             } else {
-                rentFields.classList.remove('show');
+                wordCountSpan.style.color = '';
             }
-        };
+        }
 
-        // Function to validate positive numbers with max length
-        window.validatePositiveNumber = function (input, maxLength) {
-            if (input.value < 0) {
-                input.value = 0;
-            }
-            if (maxLength && input.value.length > maxLength) {
-                input.value = input.value.slice(0, maxLength);
-            }
-        };
-
-        // Function to validate year
-        window.validateYear = function (input) {
-            const currentYear = new Date().getFullYear();
-            const minYear = 1800;
-            const value = parseInt(input.value);
-
-            if (isNaN(value) || value < minYear || value > currentYear) {
-                input.value = '';
-            }
-        };
-
-        // Function to validate description word count
-        window.validateDescription = function (textarea) {
-            const maxWords = 250;
-            const words = textarea.value.trim().split(/\s+/).filter(word => word.length > 0);
-            const wordCountElement = document.getElementById('wordCount');
-
-            if (words.length > maxWords) {
-                // Trim to max words
-                const trimmedText = words.slice(0, maxWords).join(' ');
-                textarea.value = trimmedText;
-                wordCountElement.textContent = '0';
-            } else {
-                wordCountElement.textContent = maxWords - words.length;
-            }
-        };
-
-        const form = document.getElementById('postForm');
-        form.addEventListener('submit', function (e) {
-            console.log('Form submitted');
-            console.log('Form action:', this.action);
-            console.log('Form method:', this.method);
-            console.log('Form data:', new FormData(this));
-        });
+        descriptionTextarea.addEventListener('input', updateWordCount);
+        updateWordCount();
     });
+
+    function validatePositiveNumber(input, maxDigits) {
+        let value = input.value.replace(/[^0-9.]/g, '');
+        if (maxDigits) {
+            value = value.slice(0, maxDigits);
+        }
+        input.value = value;
+    }
+
+    function validateYear(input) {
+        const year = parseInt(input.value);
+        const currentYear = new Date().getFullYear();
+        if (year < 1800 || year > currentYear) {
+            input.value = '';
+            alert('Please enter a valid year between 1800 and ' + currentYear);
+        }
+    }
+
+    function validateDescription(textarea) {
+        const text = textarea.value.trim();
+        const words = text ? text.split(/\s+/) : [];
+        if (words.length > 250) {
+            const truncated = words.slice(0, 250).join(' ');
+            textarea.value = truncated;
+            alert('Description cannot exceed 250 words');
+        }
+    }
 </script>
 {% endblock %}
 {% endwith %}
